@@ -1,6 +1,10 @@
 package generator
 
-import "text/template"
+import (
+	"errors"
+	"fmt"
+	"text/template"
+)
 
 const (
 	structType = "struct"
@@ -25,22 +29,28 @@ const (
 	runeType       = "rune"
 )
 
-type ProtocolType struct {
-	Type        string
-	Name        string
-	Description string
-	Options     interface{}
+type StructOptions struct {
+	Fields []ProtocolType `json:"fields"`
 }
 
+type ProtocolType struct {
+	Type        string      `json:"type"`
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
+	Options     interface{} `json:"options"`
+}
+
+func (p *ProtocolType) Json
+
 type Command struct {
-	CommandCode byte
-	Body        ProtocolType
+	CommandCode byte         `json:"command_code"`
+	Body        ProtocolType `json:"body"`
 }
 
 type ProtocolManifest struct {
-	PackageName string
-	Commands    []Command
-	Types       []ProtocolType
+	PackageName string         `json:"packageName"`
+	Commands    []Command      `json:"commands"`
+	Types       []ProtocolType `json:"types"`
 }
 
 func (p *ProtocolType) FormatType() (typeStr string, err error) {
@@ -53,6 +63,15 @@ func (p *ProtocolType) FormatType() (typeStr string, err error) {
 	switch p.Type {
 	case structType:
 		typeFmt = structTypeFmt
+
+		fmt.Println(p.Options)
+
+		var ok bool
+
+		p.Options, ok = p.Options.(StructOptions)
+		if !ok {
+			return typeStr, errors.New("cannot unmarshal struct options")
+		}
 	case uint8Type,
 		uint16Type,
 		uint32Type,
@@ -72,6 +91,8 @@ func (p *ProtocolType) FormatType() (typeStr string, err error) {
 		byteType,
 		runeType:
 		typeFmt = baseTypeFmt
+	default:
+		return "", nil
 	}
 
 	tmpl, err = tmpl.Parse(typeFmt)
@@ -79,7 +100,7 @@ func (p *ProtocolType) FormatType() (typeStr string, err error) {
 		return wr.s, err
 	}
 
-	err = tmpl.Execute(wr)
+	err = tmpl.Execute(wr, *p)
 	if err != nil {
 		return wr.s, err
 	}

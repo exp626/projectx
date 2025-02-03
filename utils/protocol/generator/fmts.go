@@ -6,15 +6,15 @@ import (
 )
 
 const (
-	baseTypesFmt = `package {{.package_name}}
-  {{ range $type := .types }}
+	baseTypesFmt = `package {{.PackageName}}
+  {{ range $type := .Types }}
     type {{$type}}
 
   {{ end }}
 `
-	baseTypeFmt   = `{{.name}} {{.type}}`
-	structTypeFmt = `{{.name}} struct {
-    {{ range $field := .options.fields }}
+	baseTypeFmt   = `{{.Name}} {{.Type}}`
+	structTypeFmt = `{{.Name}} struct {
+    {{ range $field := .Options.Fields }}
       {{ $field.Name }} {{ $field.Type }}
     {{ end }}
   }`

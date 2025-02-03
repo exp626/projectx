@@ -16,6 +16,12 @@ type ProtocolParser struct {
 	cfg      Config
 }
 
+func NewProtocolParser(cfg Config) (p *ProtocolParser) {
+	return &ProtocolParser{
+		cfg: cfg,
+	}
+}
+
 func (p *ProtocolParser) Parse() (err error) {
 	file, err := os.Open(p.cfg.Path)
 	if err != nil {
@@ -28,22 +34,32 @@ func (p *ProtocolParser) Parse() (err error) {
 	}
 
 	{
-
-		types := make([]string, len(p.Manifest.Types))
+		types := make([]string, 0, len(p.Manifest.Types))
 
 		for _, item := range p.Manifest.Types {
+			typeFmt, err := item.FormatType()
+			if err != nil {
+				return err
+			}
+
+			types = append(types, typeFmt)
 		}
 
 		baseTypesFile, err := os.OpenFile(
-			fmt.Sprintf("%s/base_types.go", p.cfg.OutputDir),
+			fmt.Sprintf("%sbase_types.go", p.cfg.OutputDir),
 			os.O_CREATE|os.O_RDWR,
-			os.ModeAppend,
+			0644,
 		)
 		if err != nil {
 			return err
 		}
 
-		formatBaseTypes(baseTypesFile, p.Manifest.PackageName, types)
+		defer baseTypesFile.Close()
+
+		err = formatBaseTypes(baseTypesFile, p.Manifest.PackageName, types)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
