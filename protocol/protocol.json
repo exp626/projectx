@@ -7,7 +7,7 @@
             "body": {
                 "type": "struct",
                 "description": "команда на движение игрока",
-                "direction": "client_to_server",
+                "direction": "server_to_client",
                 "name": "player_move",
                 "options": {
                     "fields": [
@@ -19,14 +19,12 @@
                         {
                             "description": "текущая позиция игрока на клиенте",
                             "name": "position",
-                            "type": "struct",
-                            "struct": "vector"
+                            "type": "vector"
                         },
                         {
-                            "description": "направление движения игрока, в какую сторону игрок нажал кнопки",
+                            "description": "направление движения игрока, в какую сторону и с какой скоростью движется игрок",
                             "name": "direction",
-                            "type": "struct",
-                            "struct": "vector"
+                            "type": "vector"
                         }
                     ]
                 }
@@ -60,22 +58,66 @@
                     ]
                 }
             }
+        },
+        {
+            "command_code": 20,
+            "body": {
+                "type": "struct",
+                "description": "команда на ввод данных с джойстика",
+                "direction": "client_to_server",
+                "name": "input",
+                "options": {
+                    "fields": [
+                        {
+                            "description": "отклонение джойстика по Х и У в диапазонах [-100, 100] включительно",
+                            "name": "direction",
+                            "type": "struct",
+                            "struct": "vector"
+                        }
+                    ]
+                }
+            }
         }
     ],
-    "structs": {
-        "position": {
-            "x": "int32",
-            "y": "int32"
+    "types": [
+        {
+            "name": "vector",
+            "type": "struct",
+            "options": {
+                "fields": [
+                    {
+                        "name": "x",
+                        "type": "int32"
+                    },
+                    {
+                        "name": "y",
+                        "type": "int32"
+                    }
+                ]
+            }
         },
-        "vector": {
-            "x": "int32",
-            "y": "int32"
-        }
-    },
 
-    "enums": {
-        "entity_code": [
-            {
+        {
+            "name": "position",
+            "type": "struct",
+            "options": {
+                "fields": [
+                    {
+                        "name": "x",
+                        "type": "int32"
+                    },
+                    {
+                        "name": "y",
+                        "type": "int32"
+                    }
+                ]
+            }
+        },
+
+        {
+            "name": "entity_code",
+            "type": "enum",
+            "options": {
                 "type": "byte",
                 "values": [
                     {
@@ -88,6 +130,6 @@
                     }
                 ]
             }
-        ]
-    }
+        }
+    ]
 }
