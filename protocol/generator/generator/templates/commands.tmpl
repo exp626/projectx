@@ -1,0 +1,25 @@
+// GENERATED CODE
+// DO NOT EDIT
+
+package {{.Protocol}}
+
+{{ range .Commands }}
+
+// {{.Description}}
+const (
+	{{ .Name }} = {{ .CommandCode }}
+)
+
+// {{.CommandCode}}
+
+{{ if eq .Body.Type "struct" }}
+
+type {{.Body.Name}} struct {
+	{{ range .Body.Options.Fields }}
+	{{ .Name }} {{ .Type }} `json:"{{ .Name }}"`
+	{{ end }}
+}
+
+{{ end }}
+
+{{ end }}
