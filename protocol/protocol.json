@@ -1,0 +1,93 @@
+{
+    "version": "1.0.0",
+    "protocol_name": "game_protocol",
+    "commands": [
+        {
+            "command_code": 21,
+            "body": {
+                "type": "struct",
+                "description": "команда на движение игрока",
+                "direction": "client_to_server",
+                "name": "player_move",
+                "options": {
+                    "fields": [
+                        {
+                            "description": "айди игрока",
+                            "name": "entity_id",
+                            "type": "int32"
+                        },
+                        {
+                            "description": "текущая позиция игрока на клиенте",
+                            "name": "position",
+                            "type": "struct",
+                            "struct": "vector"
+                        },
+                        {
+                            "description": "направление движения игрока, в какую сторону игрок нажал кнопки",
+                            "name": "direction",
+                            "type": "struct",
+                            "struct": "vector"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "command_code": 20,
+            "body": {
+                "type": "struct",
+                "description": "команда на создание игрока",
+                "direction": "server_to_client",
+                "name": "create_player",
+                "options": {
+                    "fields": [
+                        {
+                            "description": "айди команды добавления ентити",
+                            "name": "entity_type",
+                            "type": "entity_code"
+                        },
+                        {
+                            "description": "айди ентити",
+                            "name": "entity_id",
+                            "type": "int32"
+                        },
+                        {
+                            "description": "позиция ентити",
+                            "name": "position",
+                            "type": "struct",
+                            "struct": "vector"
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "structs": {
+        "position": {
+            "x": "int32",
+            "y": "int32"
+        },
+        "vector": {
+            "x": "int32",
+            "y": "int32"
+        }
+    },
+
+    "enums": {
+        "entity_code": [
+            {
+                "type": "byte",
+                "values": [
+                    {
+                        "name": "player",
+                        "value": 0
+                    },
+                    {
+                        "name": "enemy",
+                        "value": 1
+                    }
+                ]
+            }
+        ]
+    }
+}
