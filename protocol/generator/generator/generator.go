@@ -13,11 +13,13 @@ type Protocol struct {
 	Version  string    `json:"version"`
 	Protocol string    `json:"protocol_name"`
 	Commands []Command `json:"commands"`
+	Types    []Types   `json:"types"`
 }
 
 type Command struct {
 	CommandCode int    `json:"command_code"`
 	Body        Body   `json:"body"`
+	Name        string `json:"name"`
 	Description string `json:"description"`
 }
 

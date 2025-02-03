@@ -3,20 +3,30 @@
 
 package {{.Protocol}}
 
-{{ range .Commands }}
-
-// {{.Description}}
 const (
+{{ range .Commands }}
 	{{ .Name }} = {{ .CommandCode }}
+{{ end }}
 )
-
-// {{.CommandCode}}
-
+{{ range .Commands }}
 {{ if eq .Body.Type "struct" }}
 
 type {{.Body.Name}} struct {
 	{{ range .Body.Options.Fields }}
-	{{ .Name }} {{ .Type }} `json:"{{ .Name }}"`
+	{{ .Name }} {{ .Type }}
+	{{ end }}
+}
+
+{{ end }}
+
+{{ end }}
+
+{{ range .Types }}
+{{ if eq .Type "struct" }}
+
+type {{.Name}} struct {
+	{{ range .Options.Fields }}
+	{{ .Name }} {{ .Type }}
 	{{ end }}
 }
 

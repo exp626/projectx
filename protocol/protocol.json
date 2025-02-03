@@ -4,6 +4,7 @@
     "commands": [
         {
             "command_code": 21,
+            "name": "player_move",
             "body": {
                 "type": "struct",
                 "description": "команда на движение игрока",
@@ -32,6 +33,7 @@
         },
         {
             "command_code": 20,
+            "name": "create_player",
             "body": {
                 "type": "struct",
                 "description": "команда на создание игрока",
@@ -52,8 +54,7 @@
                         {
                             "description": "позиция ентити",
                             "name": "position",
-                            "type": "struct",
-                            "struct": "vector"
+                            "type": "vector"
                         }
                     ]
                 }
@@ -61,6 +62,7 @@
         },
         {
             "command_code": 20,
+            "name": "input",
             "body": {
                 "type": "struct",
                 "description": "команда на ввод данных с джойстика",
@@ -71,8 +73,7 @@
                         {
                             "description": "отклонение джойстика по Х и У в диапазонах [-100, 100] включительно",
                             "name": "direction",
-                            "type": "struct",
-                            "struct": "vector"
+                            "type": "vector"
                         }
                     ]
                 }
