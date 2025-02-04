@@ -1,16 +1,18 @@
 package generator
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	format "go/format"
 	"os"
-	"os/exec"
 )
 
 type Config struct {
-	Path           string
-	OutputDir      string
-	OutputLanguage OutputLanguage
+	Path            string
+	OutputDir       string
+	OutputLanguage  OutputLanguage
+	ProtocolPackage string
 }
 
 type ProtocolParser struct {
@@ -53,14 +55,31 @@ func (p *ProtocolParser) Parse() (err error) {
 
 		defer baseTypesFile.Close()
 
-		err = p.Manifest.FormatBaseTypes(baseTypesFile)
+		fileData := make([]byte, 0)
+		buf := bytes.NewBuffer(fileData)
+
+		err = p.Manifest.FormatBaseTypes(buf)
+		if err != nil {
+			return err
+		}
+
+		switch p.cfg.OutputLanguage {
+		case GoLanguage:
+			fileData, err = format.Source(buf.Bytes())
+			if err != nil {
+				return err
+			}
+		default:
+			fileData = buf.Bytes()
+		}
+
+		_, err = baseTypesFile.WriteAt(fileData, 0)
 		if err != nil {
 			return err
 		}
 	}
 
 	{
-
 		commandsFile, err := os.OpenFile(
 			fmt.Sprintf("%scommands.go", p.cfg.OutputDir),
 			os.O_CREATE|os.O_TRUNC|os.O_RDWR,
@@ -72,16 +91,26 @@ func (p *ProtocolParser) Parse() (err error) {
 
 		defer commandsFile.Close()
 
-		err = p.Manifest.FormatCommands(commandsFile)
+		fileData := make([]byte, 0)
+		buf := bytes.NewBuffer(fileData)
+
+		err = p.Manifest.FormatCommands(buf)
 		if err != nil {
 			return err
 		}
-	}
 
-	switch p.cfg.OutputLanguage {
-	case GoLanguage:
-		cmd := exec.Command(fmt.Sprintf("go fmt %s*.go", p.cfg.OutputDir))
-		if err = cmd.Run(); err != nil {
+		switch p.cfg.OutputLanguage {
+		case GoLanguage:
+			fileData, err = format.Source(buf.Bytes())
+			if err != nil {
+				return err
+			}
+		default:
+			fileData = buf.Bytes()
+		}
+
+		_, err = commandsFile.WriteAt(fileData, 0)
+		if err != nil {
 			return err
 		}
 	}

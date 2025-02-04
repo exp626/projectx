@@ -10,6 +10,11 @@ const (
 // DO NOT EDIT
 
 package {{.PackageName}}
+import (
+	"bytes"
+	"encoding/binary"
+)
+
   {{ range $type := .Types }}
 	{{$type}}
   {{ end }}
@@ -32,14 +37,32 @@ const (
 
 	baseTypeFmt = `// {{.Description}}
 type {{.Name}} {{.Type}}`
-	structTypeFmt = `type {{.Name}} struct {
+	structTypeFmt = `
+const {{.Name}}Size int = {{.Size}}
+type {{.Name}} struct {
     {{ range $field := .Options.Fields }} {{ $field.Name }} {{ $field.Type }}
-{{ end }}}`
+{{ end }}}
+
+func New{{.Name}}(raw [{{.Name}}Size]byte) (res {{.Name}}, err error){
+	{{.Options.FieldsConstruct}}
+}
+
+func New{{.Name}}Bytes(item {{.Name}}) (res [{{.Name}}Size]byte, err error) {
+}
+`
 	enumTypeFmt = `type {{ .Name }} {{ .Options.Type }}
 	{{$typeName := .Name}}
 	const (
 		{{ range $value := .Options.Values }}{{$typeName}}{{$value.Name}} {{$typeName}} = {{ $value.Value }}
 {{ end }})
+`
+	structFieldsConstructFmt = `
+    {{ range $field := . }} 
+	res.{{$field.Name}}, err = New{{$field.Type}}( [{{$field.Type}}Size]byte (raw[{{$field.Offset}}:{{$field.EndOffset}}]))
+	if err != nil {
+		return res, err
+	}
+	{{end}}
 `
 )
 

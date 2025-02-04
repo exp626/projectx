@@ -63,6 +63,8 @@ type (
 	StructOptions struct {
 		Fields []Field `json:"fields"`
 
+		FieldsConstruct string
+
 		// map field name: size
 		CalculatedSize map[string]uint64
 	}
@@ -78,6 +80,16 @@ func (p *ProtocolType) FormatType() (typeStr string, err error) {
 	switch p.Type {
 	case structType:
 		typeFmt = structTypeFmt
+
+		opt, ok := p.Options.(*StructOptions)
+		if !ok {
+			return typeStr, errors.New("struct options is not set")
+		}
+
+		err = opt.EnrichConstructFormat()
+		if err != nil {
+			return typeStr, err
+		}
 	case enumType:
 		typeFmt = enumTypeFmt
 	case uint8Type,
@@ -121,10 +133,7 @@ func (p *ProtocolType) CalculateSize() (err error) {
 			return errors.New("enum options is not set")
 		}
 
-		p.Size, err = opts.Type.SimpleTypeSize()
-		if err != nil {
-			return err
-		}
+		p.Size = knownTypes[opts.Type].Size
 	case structType:
 		opts, ok := p.Options.(*StructOptions)
 		if !ok {
@@ -158,6 +167,35 @@ func (p *ProtocolType) CalculateSize() (err error) {
 	default:
 		return nil
 	}
+
+	return nil
+}
+
+func (o *StructOptions) EnrichConstructFormat() (err error) {
+	var offset uint64
+
+	for i := 0; i < len(o.Fields); i++ {
+		o.Fields[i].Offset = offset
+		o.Fields[i].EndOffset = offset + knownTypes[o.Fields[i].Type].Size
+
+		offset = o.Fields[i].EndOffset
+	}
+
+	tmpl := template.New("fields")
+
+	tmpl, err = tmpl.Parse(structFieldsConstructFmt)
+	if err != nil {
+		return err
+	}
+
+	strWriter := &StringWriter{}
+
+	err = tmpl.Execute(strWriter, o.Fields)
+	if err != nil {
+		return err
+	}
+
+	o.FieldsConstruct = strWriter.s
 
 	return nil
 }
