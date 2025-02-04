@@ -8,9 +8,9 @@ import (
 )
 
 type Config struct {
-	Path      string
-	OutputDir string
-	OutputLanguage
+	Path           string
+	OutputDir      string
+	OutputLanguage OutputLanguage
 }
 
 type ProtocolParser struct {
@@ -37,17 +37,6 @@ func (p *ProtocolParser) Parse() (err error) {
 	}
 
 	{
-		types := make([]string, 0, len(p.Manifest.Types))
-
-		for _, item := range p.Manifest.Types {
-			typeFmt, err := item.FormatType()
-			if err != nil {
-				return err
-			}
-
-			types = append(types, typeFmt)
-		}
-
 		baseTypesFile, err := os.OpenFile(
 			fmt.Sprintf("%sbase_types.go", p.cfg.OutputDir),
 			os.O_CREATE|os.O_TRUNC|os.O_RDWR,
@@ -59,7 +48,7 @@ func (p *ProtocolParser) Parse() (err error) {
 
 		defer baseTypesFile.Close()
 
-		err = formatBaseTypes(baseTypesFile, p.Manifest.PackageName, types)
+		err = p.Manifest.FormatBaseTypes(baseTypesFile)
 		if err != nil {
 			return err
 		}
@@ -67,32 +56,21 @@ func (p *ProtocolParser) Parse() (err error) {
 
 	{
 
-		//types := make([]string, 0, len(p.Manifest.Types))
-		//
-		//for _, item := range p.Manifest.Types {
-		//	typeFmt, err := item.FormatType()
-		//	if err != nil {
-		//		return err
-		//	}
-		//
-		//	types = append(types, typeFmt)
-		//}
-		//
-		//baseTypesFile, err := os.OpenFile(
-		//	fmt.Sprintf("%scommands.go", p.cfg.OutputDir),
-		//	os.O_CREATE|os.O_TRUNC|os.O_RDWR,
-		//	0644,
-		//)
-		//if err != nil {
-		//	return err
-		//}
-		//
-		//defer baseTypesFile.Close()
-		//
-		//err = formatBaseTypes(baseTypesFile, p.Manifest.PackageName, types)
-		//if err != nil {
-		//	return err
-		//}
+		commandsFile, err := os.OpenFile(
+			fmt.Sprintf("%scommands.go", p.cfg.OutputDir),
+			os.O_CREATE|os.O_TRUNC|os.O_RDWR,
+			0644,
+		)
+		if err != nil {
+			return err
+		}
+
+		defer commandsFile.Close()
+
+		err = p.Manifest.FormatCommands(commandsFile)
+		if err != nil {
+			return err
+		}
 	}
 
 	switch p.cfg.OutputLanguage {

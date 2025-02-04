@@ -8,7 +8,7 @@ import (
 func main() {
 	g := generator.NewProtocolParser(generator.Config{
 		Path:           "./protocol/protocol.json",
-		OutputDir:      "./",
+		OutputDir:      "./pkg/api/",
 		OutputLanguage: "go",
 	})
 
