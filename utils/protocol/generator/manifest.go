@@ -2,7 +2,7 @@ package generator
 
 import (
 	"errors"
-	"text/template"
+	"log"
 )
 
 type Command struct {
@@ -16,48 +16,24 @@ type ProtocolManifest struct {
 	Types       []ProtocolType `json:"types"`
 }
 
-func (p *ProtocolType) FormatType() (typeStr string, err error) {
-	wr := &StringWriter{}
-
-	tmpl := template.New(p.Name)
-
-	typeFmt := ""
-
-	switch p.Type {
-	case structType:
-		typeFmt = structTypeFmt
-	case enumType:
-		typeFmt = enumTypeFmt
-	case uint8Type,
-		uint16Type,
-		uint32Type,
-		uint64Type,
-		int8Type,
-		int16Type,
-		int32Type,
-		int64Type,
-		float32Type,
-		float64Type,
-		stringType,
-		intType,
-		uintType,
-		uintptrType,
-		byteType,
-		runeType:
-		typeFmt = baseTypeFmt
-	default:
-		return "", errors.New("unknown type")
+func (m *ProtocolManifest) FillKnownTypes() (err error) {
+	for i := 0; i < len(m.Types); i++ {
+		knownTypes[m.Types[i].Name] = &m.Types[i]
 	}
 
-	tmpl, err = tmpl.Parse(typeFmt)
-	if err != nil {
-		return wr.s, err
+	for i := 0; i < len(m.Types); i++ {
+		knownType, ok := knownTypes[m.Types[i].Name]
+		if !ok {
+			return errors.New("unknown type")
+		}
+
+		err = knownType.CalculateSize()
+		if err != nil {
+			return err
+		}
 	}
 
-	err = tmpl.Execute(wr, *p)
-	if err != nil {
-		return wr.s, err
-	}
+	log.Println(knownTypes)
 
-	return wr.s, err
+	return nil
 }

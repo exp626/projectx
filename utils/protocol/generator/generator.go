@@ -36,6 +36,11 @@ func (p *ProtocolParser) Parse() (err error) {
 		return err
 	}
 
+	err = p.Manifest.FillKnownTypes()
+	if err != nil {
+		return err
+	}
+
 	{
 		baseTypesFile, err := os.OpenFile(
 			fmt.Sprintf("%sbase_types.go", p.cfg.OutputDir),

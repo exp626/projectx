@@ -1,13 +1,13 @@
 package main
 
 import (
+	"github.com/exp626/projectx/utils/protocol/generator"
 	"log"
-	"projectx/utils/protocol/generator"
 )
 
 func main() {
 	g := generator.NewProtocolParser(generator.Config{
-		Path:           "./protocol/protocol.json",
+		Path:           "./test_protocol.json",
 		OutputDir:      "./pkg/api/",
 		OutputLanguage: "go",
 	})
