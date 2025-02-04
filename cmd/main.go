@@ -7,8 +7,9 @@ import (
 
 func main() {
 	g := generator.NewProtocolParser(generator.Config{
-		Path:      "./protocol/protocol.json",
-		OutputDir: "./",
+		Path:           "./protocol/protocol.json",
+		OutputDir:      "./",
+		OutputLanguage: "go",
 	})
 
 	err := g.Parse()

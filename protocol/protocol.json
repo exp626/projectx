@@ -53,8 +53,7 @@
                         {
                             "description": "позиция ентити",
                             "name": "position",
-                            "type": "struct",
-                            "struct": "vector"
+                            "type": "vector"
                         }
                     ]
                 }
@@ -72,8 +71,7 @@
                         {
                             "description": "отклонение джойстика по Х и У в диапазонах [-100, 100] включительно",
                             "name": "direction",
-                            "type": "struct",
-                            "struct": "vector"
+                            "type": "vector"
                         }
                     ]
                 }

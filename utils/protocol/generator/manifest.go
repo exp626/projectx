@@ -1,13 +1,14 @@
 package generator
 
 import (
+	"encoding/json"
 	"errors"
-	"fmt"
 	"text/template"
 )
 
 const (
 	structType = "struct"
+	enumType   = "enum"
 
 	uint8Type      = "uint8"
 	uint16Type     = "uint16"
@@ -29,18 +30,47 @@ const (
 	runeType       = "rune"
 )
 
+type ProtocolTypeMainFields struct {
+	Type        string          `json:"type"`
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	RawOptions  json.RawMessage `json:"options"`
+}
+
 type StructOptions struct {
 	Fields []ProtocolType `json:"fields"`
 }
 
 type ProtocolType struct {
-	Type        string      `json:"type"`
-	Name        string      `json:"name"`
-	Description string      `json:"description"`
-	Options     interface{} `json:"options"`
+	ProtocolTypeMainFields
+	Options interface{}
 }
 
-func (p *ProtocolType) Json
+func (p *ProtocolType) UnmarshalJSON(bytes []byte) (err error) {
+	err = json.Unmarshal(bytes, &p.ProtocolTypeMainFields)
+	if err != nil {
+		return err
+	}
+
+	switch p.Type {
+	case structType:
+		p.Options = &StructOptions{}
+
+		err = json.Unmarshal(p.RawOptions, p.Options)
+		if err != nil {
+			return err
+		}
+	case enumType:
+		p.Options = &EnumOptions{}
+
+		err = json.Unmarshal(p.RawOptions, p.Options)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
 
 type Command struct {
 	CommandCode byte         `json:"command_code"`
@@ -53,6 +83,16 @@ type ProtocolManifest struct {
 	Types       []ProtocolType `json:"types"`
 }
 
+type EnumOptions struct {
+	Type   string             `json:"type"`
+	Values []EnumOptionsValue `json:"values"`
+}
+
+type EnumOptionsValue struct {
+	Name  string `json:"name"`
+	Value int    `json:"value"`
+}
+
 func (p *ProtocolType) FormatType() (typeStr string, err error) {
 	wr := &StringWriter{}
 
@@ -63,15 +103,8 @@ func (p *ProtocolType) FormatType() (typeStr string, err error) {
 	switch p.Type {
 	case structType:
 		typeFmt = structTypeFmt
-
-		fmt.Println(p.Options)
-
-		var ok bool
-
-		p.Options, ok = p.Options.(StructOptions)
-		if !ok {
-			return typeStr, errors.New("cannot unmarshal struct options")
-		}
+	case enumType:
+		typeFmt = enumTypeFmt
 	case uint8Type,
 		uint16Type,
 		uint32Type,
@@ -92,7 +125,7 @@ func (p *ProtocolType) FormatType() (typeStr string, err error) {
 		runeType:
 		typeFmt = baseTypeFmt
 	default:
-		return "", nil
+		return "", errors.New("unknown type")
 	}
 
 	tmpl, err = tmpl.Parse(typeFmt)
