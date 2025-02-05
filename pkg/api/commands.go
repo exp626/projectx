@@ -3,7 +3,9 @@
 
 package game_protocol
 
-const player_moveSize int = 0
+import protocol "github.com/exp626/projectx/pkg/protocol"
+
+const Sizeplayer_move int = 20
 
 type player_move struct {
 	entity_id int32
@@ -11,29 +13,53 @@ type player_move struct {
 	direction vector
 }
 
-func Newplayer_move(raw [player_moveSize]byte) (res player_move, err error) {
+func Newplayer_move(raw [Sizeplayer_move]byte) (res player_move, err error) {
 
-	res.entity_id, err = Newint32([int32Size]byte(raw[0:4]))
+	res.entity_id, err = protocol.Newint32([protocol.Sizeint32]byte(raw[0:4]))
 	if err != nil {
 		return res, err
 	}
 
-	res.position, err = Newvector([vectorSize]byte(raw[4:20]))
+	res.position, err = Newvector([Sizevector]byte(raw[4:12]))
 	if err != nil {
 		return res, err
 	}
 
-	res.direction, err = Newvector([vectorSize]byte(raw[20:36]))
+	res.direction, err = Newvector([Sizevector]byte(raw[12:20]))
 	if err != nil {
 		return res, err
 	}
 
+	return res, nil
 }
 
-func Newplayer_moveBytes(item player_move) (res [player_moveSize]byte, err error) {
+func Newplayer_moveBytes(item player_move) (res [Sizeplayer_move]byte, err error) {
+
+	entity_idBytes, err := protocol.Newint32Bytes(item.entity_id)
+	if err != nil {
+		return res, err
+	}
+
+	copy(res[0:4], entity_idBytes[:])
+
+	positionBytes, err := NewvectorBytes(item.position)
+	if err != nil {
+		return res, err
+	}
+
+	copy(res[4:12], positionBytes[:])
+
+	directionBytes, err := NewvectorBytes(item.direction)
+	if err != nil {
+		return res, err
+	}
+
+	copy(res[12:20], directionBytes[:])
+
+	return res, nil
 }
 
-const create_playerSize int = 0
+const Sizecreate_player int = 13
 
 type create_player struct {
 	entity_type entity_code
@@ -41,44 +67,78 @@ type create_player struct {
 	position    vector
 }
 
-func Newcreate_player(raw [create_playerSize]byte) (res create_player, err error) {
+func Newcreate_player(raw [Sizecreate_player]byte) (res create_player, err error) {
 
-	res.entity_type, err = Newentity_code([entity_codeSize]byte(raw[0:1]))
+	res.entity_type, err = Newentity_code([Sizeentity_code]byte(raw[0:1]))
 	if err != nil {
 		return res, err
 	}
 
-	res.entity_id, err = Newint32([int32Size]byte(raw[1:5]))
+	res.entity_id, err = protocol.Newint32([protocol.Sizeint32]byte(raw[1:5]))
 	if err != nil {
 		return res, err
 	}
 
-	res.position, err = Newvector([vectorSize]byte(raw[5:21]))
+	res.position, err = Newvector([Sizevector]byte(raw[5:13]))
 	if err != nil {
 		return res, err
 	}
 
+	return res, nil
 }
 
-func Newcreate_playerBytes(item create_player) (res [create_playerSize]byte, err error) {
+func Newcreate_playerBytes(item create_player) (res [Sizecreate_player]byte, err error) {
+
+	entity_typeBytes, err := Newentity_codeBytes(item.entity_type)
+	if err != nil {
+		return res, err
+	}
+
+	copy(res[0:1], entity_typeBytes[:])
+
+	entity_idBytes, err := protocol.Newint32Bytes(item.entity_id)
+	if err != nil {
+		return res, err
+	}
+
+	copy(res[1:5], entity_idBytes[:])
+
+	positionBytes, err := NewvectorBytes(item.position)
+	if err != nil {
+		return res, err
+	}
+
+	copy(res[5:13], positionBytes[:])
+
+	return res, nil
 }
 
-const inputSize int = 0
+const Sizeinput int = 8
 
 type input struct {
 	direction vector
 }
 
-func Newinput(raw [inputSize]byte) (res input, err error) {
+func Newinput(raw [Sizeinput]byte) (res input, err error) {
 
-	res.direction, err = Newvector([vectorSize]byte(raw[0:16]))
+	res.direction, err = Newvector([Sizevector]byte(raw[0:8]))
 	if err != nil {
 		return res, err
 	}
 
+	return res, nil
 }
 
-func NewinputBytes(item input) (res [inputSize]byte, err error) {
+func NewinputBytes(item input) (res [Sizeinput]byte, err error) {
+
+	directionBytes, err := NewvectorBytes(item.direction)
+	if err != nil {
+		return res, err
+	}
+
+	copy(res[0:8], directionBytes[:])
+
+	return res, nil
 }
 
 // команда на движение игрока

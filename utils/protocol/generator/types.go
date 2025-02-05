@@ -24,6 +24,23 @@ const (
 )
 
 var (
+	baseTypes = []TypeName{
+		uint8Type,
+		uint16Type,
+		uint32Type,
+		uint64Type,
+		int8Type,
+		int16Type,
+		int32Type,
+		int64Type,
+		float32Type,
+		float64Type,
+		stringType,
+		intType,
+		uintType,
+		byteType,
+		runeType,
+	}
 	knownTypes = map[TypeName]*ProtocolType{
 		uint8Type: {
 			Size: 1,

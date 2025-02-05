@@ -3,6 +3,7 @@ package generator
 import (
 	"encoding/json"
 	"errors"
+	"slices"
 	"text/template"
 )
 
@@ -64,6 +65,7 @@ type (
 		Fields []Field `json:"fields"`
 
 		FieldsConstruct string
+		BytesConstruct  string
 
 		// map field name: size
 		CalculatedSize map[string]uint64
@@ -149,8 +151,11 @@ func (p *ProtocolType) CalculateSize() (err error) {
 			if fieldType.IsSizeDynamic {
 				p.IsSizeDynamic = true
 			} else if fieldType.Size != 0 {
-				opts.CalculatedSize[field.Name] = fieldType.Size
-				p.Size += fieldType.Size
+				_, ok = opts.CalculatedSize[field.Name]
+				if !ok {
+					opts.CalculatedSize[field.Name] = fieldType.Size
+					p.Size += fieldType.Size
+				}
 			} else {
 				// possibly infinite recursion
 				// TODO: fix
@@ -160,8 +165,11 @@ func (p *ProtocolType) CalculateSize() (err error) {
 					return err
 				}
 
-				opts.CalculatedSize[field.Name] = fieldType.Size
-				p.Size += fieldType.Size
+				_, ok = opts.CalculatedSize[field.Name]
+				if !ok {
+					opts.CalculatedSize[field.Name] = fieldType.Size
+					p.Size += fieldType.Size
+				}
 			}
 		}
 	default:
@@ -179,23 +187,40 @@ func (o *StructOptions) EnrichConstructFormat() (err error) {
 		o.Fields[i].EndOffset = offset + knownTypes[o.Fields[i].Type].Size
 
 		offset = o.Fields[i].EndOffset
+
+		o.Fields[i].IsBaseType = slices.Contains(baseTypes, o.Fields[i].Type)
 	}
 
-	tmpl := template.New("fields")
+	constructTmpl := template.New("fields")
 
-	tmpl, err = tmpl.Parse(structFieldsConstructFmt)
+	constructTmpl, err = constructTmpl.Parse(structFieldsConstructFmt)
 	if err != nil {
 		return err
 	}
 
-	strWriter := &StringWriter{}
+	strWriterConstruct := &StringWriter{}
 
-	err = tmpl.Execute(strWriter, o.Fields)
+	err = constructTmpl.Execute(strWriterConstruct, o.Fields)
 	if err != nil {
 		return err
 	}
 
-	o.FieldsConstruct = strWriter.s
+	bytesTmpl := template.New("fields")
+
+	bytesTmpl, err = constructTmpl.Parse(structBytesConstructFmt)
+	if err != nil {
+		return err
+	}
+
+	strWriterBytes := &StringWriter{}
+
+	err = bytesTmpl.Execute(strWriterBytes, o.Fields)
+	if err != nil {
+		return err
+	}
+
+	o.FieldsConstruct = strWriterConstruct.s
+	o.BytesConstruct = strWriterBytes.s
 
 	return nil
 }

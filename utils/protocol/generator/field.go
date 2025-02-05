@@ -5,4 +5,6 @@ type Field struct {
 	Type      TypeName
 	Offset    uint64
 	EndOffset uint64
+
+	IsBaseType bool
 }

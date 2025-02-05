@@ -10,10 +10,8 @@ const (
 // DO NOT EDIT
 
 package {{.PackageName}}
-import (
-	"bytes"
-	"encoding/binary"
-)
+
+import protocol "github.com/exp626/projectx/pkg/protocol"
 
   {{ range $type := .Types }}
 	{{$type}}
@@ -23,6 +21,9 @@ import (
 // DO NOT EDIT
 
 package {{.PackageName}}
+
+import protocol "github.com/exp626/projectx/pkg/protocol"
+
 {{ range $type := .Types }}
 {{$type}}
 {{ end }}
@@ -38,30 +39,67 @@ const (
 	baseTypeFmt = `// {{.Description}}
 type {{.Name}} {{.Type}}`
 	structTypeFmt = `
-const {{.Name}}Size int = {{.Size}}
+const Size{{.Name}} int = {{.Size}}
 type {{.Name}} struct {
     {{ range $field := .Options.Fields }} {{ $field.Name }} {{ $field.Type }}
 {{ end }}}
 
-func New{{.Name}}(raw [{{.Name}}Size]byte) (res {{.Name}}, err error){
+func New{{.Name}}(raw [Size{{.Name}}]byte) (res {{.Name}}, err error){
 	{{.Options.FieldsConstruct}}
+
+	return res, nil
 }
 
-func New{{.Name}}Bytes(item {{.Name}}) (res [{{.Name}}Size]byte, err error) {
+func New{{.Name}}Bytes(item {{.Name}}) (res [Size{{.Name}}]byte, err error) {
+	{{.Options.BytesConstruct}}
+
+	return res, nil
 }
 `
-	enumTypeFmt = `type {{ .Name }} {{ .Options.Type }}
+	enumTypeFmt = `
+	const Size{{.Name}} = protocol.Size{{.Options.Type}}
+	type {{ .Name }} {{ .Options.Type }}
 	{{$typeName := .Name}}
 	const (
 		{{ range $value := .Options.Values }}{{$typeName}}{{$value.Name}} {{$typeName}} = {{ $value.Value }}
-{{ end }})
+	{{ end }})
+	
+	func New{{.Name}}(raw [Size{{.Name}}]byte) (res {{.Name}}, err error){
+		baseRes, err := protocol.New{{.Options.Type}}(raw)
+		if err != nil {
+			return res, err
+		}
+
+		res = {{.Name}}(baseRes)
+		
+		return res, nil
+	}
+	
+	func New{{.Name}}Bytes(item {{.Name}}) (res [Size{{.Name}}]byte, err error) {
+		res, err = protocol.New{{.Options.Type}}Bytes({{.Options.Type}}(item))
+		if err != nil {
+			return res, err
+		}
+
+		return res, nil
+	}
 `
 	structFieldsConstructFmt = `
     {{ range $field := . }} 
-	res.{{$field.Name}}, err = New{{$field.Type}}( [{{$field.Type}}Size]byte (raw[{{$field.Offset}}:{{$field.EndOffset}}]))
+	res.{{$field.Name}}, err = {{if $field.IsBaseType}}protocol.{{end}}New{{$field.Type}}( [{{if $field.IsBaseType}}protocol.{{end}}Size{{$field.Type}}]byte (raw[{{$field.Offset}}:{{$field.EndOffset}}]))
 	if err != nil {
 		return res, err
 	}
+	{{end}}
+`
+	structBytesConstructFmt = `
+	{{ range $field := . }}
+	{{$field.Name}}Bytes, err := {{if $field.IsBaseType}}protocol.{{end}}New{{$field.Type}}Bytes(item.{{$field.Name}})
+	if err != nil {
+		return res, err
+	}
+
+	copy(res[{{$field.Offset}}:{{$field.EndOffset}}], {{$field.Name}}Bytes[:])
 	{{end}}
 `
 )

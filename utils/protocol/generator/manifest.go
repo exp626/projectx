@@ -2,7 +2,6 @@ package generator
 
 import (
 	"errors"
-	"log"
 )
 
 type Command struct {
@@ -33,7 +32,12 @@ func (m *ProtocolManifest) FillKnownTypes() (err error) {
 		}
 	}
 
-	log.Println(knownTypes)
+	for i := 0; i < len(m.Commands); i++ {
+		err = m.Commands[i].Body.CalculateSize()
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
