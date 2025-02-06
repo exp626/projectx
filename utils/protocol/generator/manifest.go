@@ -141,3 +141,25 @@ func (m *ProtocolManifest) FormatServer(wr io.Writer) (err error) {
 
 	return err
 }
+
+func (m *ProtocolManifest) FormatClient(wr io.Writer) (err error) {
+	tmpl := template.New("client")
+
+	tmpl, err = tmpl.Parse(clientFmt)
+	if err != nil {
+		return err
+	}
+
+	err = tmpl.Execute(wr, struct {
+		PackageName string
+		Commands    []Command
+	}{
+		PackageName: m.PackageName,
+		Commands:    m.Commands,
+	})
+	if err != nil {
+		return err
+	}
+
+	return err
+}

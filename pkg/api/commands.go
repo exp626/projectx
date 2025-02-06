@@ -3,7 +3,19 @@
 
 package game_protocol
 
-import protocol "github.com/exp626/projectx/pkg/protocol"
+import (
+	"context"
+	protocol "github.com/exp626/projectx/pkg/protocol"
+)
+
+type Service interface {
+	// 21
+	player_move(ctx context.Context, body player_move) (err error)
+	// 19
+	create_player(ctx context.Context, body create_player) (err error)
+	// 20
+	input(ctx context.Context, body input) (err error)
+}
 
 const Sizeplayer_move int = 20
 

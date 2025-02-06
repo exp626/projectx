@@ -136,6 +136,42 @@ func (p *ProtocolParser) Parse() (err error) {
 		}
 
 		switch p.cfg.OutputLanguage {
+		case GoLanguage:
+			fileData, err = format.Source(buf.Bytes())
+			if err != nil {
+				return err
+			}
+		default:
+			fileData = buf.Bytes()
+		}
+
+		_, err = serverFile.WriteAt(fileData, 0)
+		if err != nil {
+			return err
+		}
+	}
+
+	{
+		clientFile, err := os.OpenFile(
+			fmt.Sprintf("%sclient.go", p.cfg.OutputDir),
+			os.O_CREATE|os.O_TRUNC|os.O_RDWR,
+			0644,
+		)
+		if err != nil {
+			return err
+		}
+
+		defer clientFile.Close()
+
+		fileData := make([]byte, 0)
+		buf := bytes.NewBuffer(fileData)
+
+		err = p.Manifest.FormatClient(buf)
+		if err != nil {
+			return err
+		}
+
+		switch p.cfg.OutputLanguage {
 		//case GoLanguage:
 		//	fileData, err = format.Source(buf.Bytes())
 		//	if err != nil {
@@ -145,7 +181,7 @@ func (p *ProtocolParser) Parse() (err error) {
 			fileData = buf.Bytes()
 		}
 
-		_, err = serverFile.WriteAt(fileData, 0)
+		_, err = clientFile.WriteAt(fileData, 0)
 		if err != nil {
 			return err
 		}

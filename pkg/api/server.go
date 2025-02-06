@@ -8,21 +8,11 @@ import (
 	"errors"
 )
 
-type Service interface {
-	// 21
-	player_move(ctx context.Context, body player_move) (err error)
-	// 19
-	create_player(ctx context.Context, body create_player) (err error)
-	// 20
-	input(ctx context.Context, body input) (err error)
-	
-}
-
-type Server struct{	
+type Server struct {
 	service Service
 }
 
-func (s *Server) HandleCommand(rawBody []byte) (err error){
+func (s *Server) HandleCommand(rawBody []byte) (err error) {
 	if len(rawBody) < 2 {
 		return errors.New("body is too short")
 	}
@@ -31,8 +21,8 @@ func (s *Server) HandleCommand(rawBody []byte) (err error){
 
 	rawCommandBody := rawBody[1:]
 
-	switch commandCode{
-	
+	switch commandCode {
+
 	case CommandCodeplayer_move:
 		if len(rawCommandBody) < Sizeplayer_move {
 			return errors.New("body is too short")
@@ -47,7 +37,7 @@ func (s *Server) HandleCommand(rawBody []byte) (err error){
 		if err != nil {
 			return err
 		}
-	
+
 	case CommandCodecreate_player:
 		if len(rawCommandBody) < Sizecreate_player {
 			return errors.New("body is too short")
@@ -62,7 +52,7 @@ func (s *Server) HandleCommand(rawBody []byte) (err error){
 		if err != nil {
 			return err
 		}
-	
+
 	case CommandCodeinput:
 		if len(rawCommandBody) < Sizeinput {
 			return errors.New("body is too short")
@@ -77,7 +67,7 @@ func (s *Server) HandleCommand(rawBody []byte) (err error){
 		if err != nil {
 			return err
 		}
-	
+
 	default:
 		return errors.New("unknown command code")
 	}

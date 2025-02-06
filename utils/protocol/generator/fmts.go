@@ -17,7 +17,16 @@ import protocol "github.com/exp626/projectx/pkg/protocol"
 
 package {{.PackageName}}
 
-import protocol "github.com/exp626/projectx/pkg/protocol"
+import (
+	"context"
+	protocol "github.com/exp626/projectx/pkg/protocol"
+)
+
+type Service interface {
+	{{ range $command := .Commands }}// {{.CommandCode}}
+	{{ $command.Body.Name }}(ctx context.Context, body {{ $command.Body.Name }}) (err error)
+	{{ end }}
+}
 
 {{ range $type := .Types }}
 {{$type}}
@@ -107,12 +116,6 @@ import (
 	"errors"
 )
 
-type Service interface {
-	{{ range $command := .Commands }}// {{.CommandCode}}
-	{{ $command.Body.Name }}(ctx context.Context, body {{ $command.Body.Name }}) (err error)
-	{{ end }}
-}
-
 type Server struct{	
 	service Service
 }
@@ -149,5 +152,46 @@ func (s *Server) HandleCommand(rawBody []byte) (err error){
 
 	return nil
 }
+`
+	clientFmt = `// GENERATED CODE
+// DO NOT EDIT
+
+package {{.PackageName}}
+
+import (
+	"io"
+	"context"
+	"errors"
+)
+
+type Client struct {
+	wr io.Writer
+}
+
+
+{{ range $command := .Commands }}// {{.CommandCode}}
+func (c *Client){{ $command.Body.Name }}(ctx context.Context, body {{ $command.Body.Name }}) (err error) {
+	rawCommandBody, err := New{{ $command.Body.Name }}Bytes(body)
+	if err != nil {
+		return err
+	}
+
+	rawBody := make([]byte, 0, Size{{ $command.Body.Name }}+1)
+
+	rawBody = append(rawBody, CommandCode{{ $command.Body.Name }})
+	rawBody = append(rawBody, rawCommandBody[:]...)
+
+	n, err := c.wr.Write(rawBody)
+	if err != nil {
+		return err
+	}
+
+	if n != len(rawBody){
+		return errors.New("all information was not writen")
+	}
+
+	return nil
+}
+{{ end }}
 `
 )
