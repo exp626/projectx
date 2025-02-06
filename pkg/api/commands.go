@@ -141,20 +141,17 @@ func NewinputBytes(item input) (res [Sizeinput]byte, err error) {
 	return res, nil
 }
 
-// команда на движение игрока
-// 21
 const (
-	CommandCodeplayer_move = 21
-)
 
-// команда на создание игрока
-// 20
-const (
-	CommandCodecreate_player = 20
-)
+	// команда на движение игрока
+	// 21
+	CommandCodeplayer_move byte = 21
 
-// команда на ввод данных с джойстика
-// 20
-const (
-	CommandCodeinput = 20
+	// команда на создание игрока
+	// 19
+	CommandCodecreate_player byte = 19
+
+	// команда на ввод данных с джойстика
+	// 20
+	CommandCodeinput byte = 20
 )

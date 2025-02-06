@@ -1,10 +1,5 @@
 package generator
 
-import (
-	"io"
-	"text/template"
-)
-
 const (
 	baseTypesFmt = `// GENERATED CODE
 // DO NOT EDIT
@@ -27,13 +22,13 @@ import protocol "github.com/exp626/projectx/pkg/protocol"
 {{ range $type := .Types }}
 {{$type}}
 {{ end }}
+const (
 {{ range $command := .Commands }}
 // {{$command.Body.Description}}
 // {{.CommandCode}}
-const (
-	CommandCode{{ $command.Body.Name }} = {{ .CommandCode }}
-)
+	CommandCode{{ $command.Body.Name }} byte = {{ .CommandCode }}
 {{ end }}
+)
 `
 
 	baseTypeFmt = `// {{.Description}}
@@ -102,72 +97,57 @@ func New{{.Name}}Bytes(item {{.Name}}) (res [Size{{.Name}}]byte, err error) {
 	copy(res[{{$field.Offset}}:{{$field.EndOffset}}], {{$field.Name}}Bytes[:])
 	{{end}}
 `
+	serverFmt = `// GENERATED CODE
+// DO NOT EDIT
+
+package {{.PackageName}}
+
+import (
+	"context"
+	"errors"
 )
 
-func (m *ProtocolManifest) FormatBaseTypes(wr io.Writer) (err error) {
-	types := make([]string, 0, len(m.Types))
+type Service interface {
+	{{ range $command := .Commands }}// {{.CommandCode}}
+	{{ $command.Body.Name }}(ctx context.Context, body {{ $command.Body.Name }}) (err error)
+	{{ end }}
+}
 
-	for _, item := range m.Types {
-		typeFmt, err := item.FormatType()
+type Server struct{	
+	service Service
+}
+
+func (s *Server) HandleCommand(rawBody []byte) (err error){
+	if len(rawBody) < 2 {
+		return errors.New("body is too short")
+	}
+
+	commandCode := rawBody[0]
+
+	rawCommandBody := rawBody[1:]
+
+	switch commandCode{
+	{{ range $command := .Commands }}
+	case CommandCode{{ $command.Body.Name }}:
+		if len(rawCommandBody) < Size{{$command.Body.Name}} {
+			return errors.New("body is too short")
+		}
+
+		body, err := New{{$command.Body.Name}}([Size{{$command.Body.Name}}]byte(rawCommandBody))
 		if err != nil {
 			return err
 		}
 
-		types = append(types, typeFmt)
-	}
-
-	tmpl := template.New("baseTypes")
-
-	tmpl, err = tmpl.Parse(baseTypesFmt)
-	if err != nil {
-		return err
-	}
-
-	err = tmpl.Execute(wr, struct {
-		PackageName string
-		Types       []string
-	}{
-		PackageName: m.PackageName,
-		Types:       types,
-	})
-	if err != nil {
-		return err
-	}
-
-	return err
-}
-
-func (m *ProtocolManifest) FormatCommands(wr io.Writer) (err error) {
-	types := make([]string, 0, len(m.Commands))
-
-	for _, item := range m.Commands {
-		typeFmt, err := item.Body.FormatType()
+		err = s.service.{{ $command.Body.Name }}(context.Background(), body)
 		if err != nil {
 			return err
 		}
-
-		types = append(types, typeFmt)
+	{{ end }}
+	default:
+		return errors.New("unknown command code")
 	}
 
-	tmpl := template.New("commandsTypes")
-
-	tmpl, err = tmpl.Parse(commandsFmt)
-	if err != nil {
-		return err
-	}
-
-	err = tmpl.Execute(wr, struct {
-		PackageName string
-		Types       []string
-		Commands    []Command
-	}{
-		PackageName: m.PackageName,
-		Types:       types,
-		Commands:    m.Commands,
-	})
-	if err != nil {
-		return err
-	}
-
-	return err
+	return nil
 }
+`
+)
