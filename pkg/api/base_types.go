@@ -5,49 +5,21 @@ package game_protocol
 
 import protocol "github.com/exp626/projectx/pkg/protocol"
 
-const SizeVectorClone int = 8
-
-type VectorClone struct {
-	x Vector
-}
-
-func NewVectorClone(raw [SizeVectorClone]byte) (res VectorClone, err error) {
-
-	res.x, err = NewVector([SizeVector]byte(raw[0:8]))
-	if err != nil {
-		return res, err
-	}
-
-	return res, nil
-}
-
-func NewVectorCloneBytes(item VectorClone) (res [SizeVectorClone]byte, err error) {
-
-	xBytes, err := NewVectorBytes(item.x)
-	if err != nil {
-		return res, err
-	}
-
-	copy(res[0:8], xBytes[:])
-
-	return res, nil
-}
-
 const SizeVector int = 8
 
 type Vector struct {
-	x int32
-	y int32
+	X int32
+	Y int32
 }
 
 func NewVector(raw [SizeVector]byte) (res Vector, err error) {
 
-	res.x, err = protocol.Newint32([protocol.Sizeint32]byte(raw[0:4]))
+	res.X, err = protocol.Newint32([protocol.Sizeint32]byte(raw[0:4]))
 	if err != nil {
 		return res, err
 	}
 
-	res.y, err = protocol.Newint32([protocol.Sizeint32]byte(raw[4:8]))
+	res.Y, err = protocol.Newint32([protocol.Sizeint32]byte(raw[4:8]))
 	if err != nil {
 		return res, err
 	}
@@ -57,19 +29,19 @@ func NewVector(raw [SizeVector]byte) (res Vector, err error) {
 
 func NewVectorBytes(item Vector) (res [SizeVector]byte, err error) {
 
-	xBytes, err := protocol.Newint32Bytes(item.x)
+	XBytes, err := protocol.Newint32Bytes(item.X)
 	if err != nil {
 		return res, err
 	}
 
-	copy(res[0:4], xBytes[:])
+	copy(res[0:4], XBytes[:])
 
-	yBytes, err := protocol.Newint32Bytes(item.y)
+	YBytes, err := protocol.Newint32Bytes(item.Y)
 	if err != nil {
 		return res, err
 	}
 
-	copy(res[4:8], yBytes[:])
+	copy(res[4:8], YBytes[:])
 
 	return res, nil
 }
@@ -77,18 +49,18 @@ func NewVectorBytes(item Vector) (res [SizeVector]byte, err error) {
 const SizePosition int = 8
 
 type Position struct {
-	x int32
-	y int32
+	X int32
+	Y int32
 }
 
 func NewPosition(raw [SizePosition]byte) (res Position, err error) {
 
-	res.x, err = protocol.Newint32([protocol.Sizeint32]byte(raw[0:4]))
+	res.X, err = protocol.Newint32([protocol.Sizeint32]byte(raw[0:4]))
 	if err != nil {
 		return res, err
 	}
 
-	res.y, err = protocol.Newint32([protocol.Sizeint32]byte(raw[4:8]))
+	res.Y, err = protocol.Newint32([protocol.Sizeint32]byte(raw[4:8]))
 	if err != nil {
 		return res, err
 	}
@@ -98,19 +70,19 @@ func NewPosition(raw [SizePosition]byte) (res Position, err error) {
 
 func NewPositionBytes(item Position) (res [SizePosition]byte, err error) {
 
-	xBytes, err := protocol.Newint32Bytes(item.x)
+	XBytes, err := protocol.Newint32Bytes(item.X)
 	if err != nil {
 		return res, err
 	}
 
-	copy(res[0:4], xBytes[:])
+	copy(res[0:4], XBytes[:])
 
-	yBytes, err := protocol.Newint32Bytes(item.y)
+	YBytes, err := protocol.Newint32Bytes(item.Y)
 	if err != nil {
 		return res, err
 	}
 
-	copy(res[4:8], yBytes[:])
+	copy(res[4:8], YBytes[:])
 
 	return res, nil
 }

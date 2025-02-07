@@ -250,6 +250,7 @@ func (p *ProtocolType) FormatTypeName(language OutputLanguage) (err error) {
 		case GoLanguage:
 			for i := 0; i < len(opts.Fields); i++ {
 				opts.Fields[i].Type.ToCamel()
+				opts.Fields[i].Name = strcase.ToCamel(opts.Fields[i].Name)
 			}
 		}
 	}

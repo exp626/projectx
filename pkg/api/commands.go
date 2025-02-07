@@ -20,24 +20,24 @@ type Service interface {
 const SizePlayerMoveBody int = 20
 
 type PlayerMoveBody struct {
-	entity_id int32
-	position  Vector
-	direction Vector
+	EntityId  int32
+	Position  Vector
+	Direction Vector
 }
 
 func NewPlayerMoveBody(raw [SizePlayerMoveBody]byte) (res PlayerMoveBody, err error) {
 
-	res.entity_id, err = protocol.Newint32([protocol.Sizeint32]byte(raw[0:4]))
+	res.EntityId, err = protocol.Newint32([protocol.Sizeint32]byte(raw[0:4]))
 	if err != nil {
 		return res, err
 	}
 
-	res.position, err = NewVector([SizeVector]byte(raw[4:12]))
+	res.Position, err = NewVector([SizeVector]byte(raw[4:12]))
 	if err != nil {
 		return res, err
 	}
 
-	res.direction, err = NewVector([SizeVector]byte(raw[12:20]))
+	res.Direction, err = NewVector([SizeVector]byte(raw[12:20]))
 	if err != nil {
 		return res, err
 	}
@@ -47,26 +47,26 @@ func NewPlayerMoveBody(raw [SizePlayerMoveBody]byte) (res PlayerMoveBody, err er
 
 func NewPlayerMoveBodyBytes(item PlayerMoveBody) (res [SizePlayerMoveBody]byte, err error) {
 
-	entity_idBytes, err := protocol.Newint32Bytes(item.entity_id)
+	EntityIdBytes, err := protocol.Newint32Bytes(item.EntityId)
 	if err != nil {
 		return res, err
 	}
 
-	copy(res[0:4], entity_idBytes[:])
+	copy(res[0:4], EntityIdBytes[:])
 
-	positionBytes, err := NewVectorBytes(item.position)
+	PositionBytes, err := NewVectorBytes(item.Position)
 	if err != nil {
 		return res, err
 	}
 
-	copy(res[4:12], positionBytes[:])
+	copy(res[4:12], PositionBytes[:])
 
-	directionBytes, err := NewVectorBytes(item.direction)
+	DirectionBytes, err := NewVectorBytes(item.Direction)
 	if err != nil {
 		return res, err
 	}
 
-	copy(res[12:20], directionBytes[:])
+	copy(res[12:20], DirectionBytes[:])
 
 	return res, nil
 }
@@ -74,24 +74,24 @@ func NewPlayerMoveBodyBytes(item PlayerMoveBody) (res [SizePlayerMoveBody]byte, 
 const SizeCreatePlayerBody int = 13
 
 type CreatePlayerBody struct {
-	entity_type EntityCode
-	entity_id   int32
-	position    Vector
+	EntityType EntityCode
+	EntityId   int32
+	Position   Vector
 }
 
 func NewCreatePlayerBody(raw [SizeCreatePlayerBody]byte) (res CreatePlayerBody, err error) {
 
-	res.entity_type, err = NewEntityCode([SizeEntityCode]byte(raw[0:1]))
+	res.EntityType, err = NewEntityCode([SizeEntityCode]byte(raw[0:1]))
 	if err != nil {
 		return res, err
 	}
 
-	res.entity_id, err = protocol.Newint32([protocol.Sizeint32]byte(raw[1:5]))
+	res.EntityId, err = protocol.Newint32([protocol.Sizeint32]byte(raw[1:5]))
 	if err != nil {
 		return res, err
 	}
 
-	res.position, err = NewVector([SizeVector]byte(raw[5:13]))
+	res.Position, err = NewVector([SizeVector]byte(raw[5:13]))
 	if err != nil {
 		return res, err
 	}
@@ -101,26 +101,26 @@ func NewCreatePlayerBody(raw [SizeCreatePlayerBody]byte) (res CreatePlayerBody, 
 
 func NewCreatePlayerBodyBytes(item CreatePlayerBody) (res [SizeCreatePlayerBody]byte, err error) {
 
-	entity_typeBytes, err := NewEntityCodeBytes(item.entity_type)
+	EntityTypeBytes, err := NewEntityCodeBytes(item.EntityType)
 	if err != nil {
 		return res, err
 	}
 
-	copy(res[0:1], entity_typeBytes[:])
+	copy(res[0:1], EntityTypeBytes[:])
 
-	entity_idBytes, err := protocol.Newint32Bytes(item.entity_id)
+	EntityIdBytes, err := protocol.Newint32Bytes(item.EntityId)
 	if err != nil {
 		return res, err
 	}
 
-	copy(res[1:5], entity_idBytes[:])
+	copy(res[1:5], EntityIdBytes[:])
 
-	positionBytes, err := NewVectorBytes(item.position)
+	PositionBytes, err := NewVectorBytes(item.Position)
 	if err != nil {
 		return res, err
 	}
 
-	copy(res[5:13], positionBytes[:])
+	copy(res[5:13], PositionBytes[:])
 
 	return res, nil
 }
@@ -128,12 +128,12 @@ func NewCreatePlayerBodyBytes(item CreatePlayerBody) (res [SizeCreatePlayerBody]
 const SizeInputBody int = 8
 
 type InputBody struct {
-	direction Vector
+	Direction Vector
 }
 
 func NewInputBody(raw [SizeInputBody]byte) (res InputBody, err error) {
 
-	res.direction, err = NewVector([SizeVector]byte(raw[0:8]))
+	res.Direction, err = NewVector([SizeVector]byte(raw[0:8]))
 	if err != nil {
 		return res, err
 	}
@@ -143,12 +143,12 @@ func NewInputBody(raw [SizeInputBody]byte) (res InputBody, err error) {
 
 func NewInputBodyBytes(item InputBody) (res [SizeInputBody]byte, err error) {
 
-	directionBytes, err := NewVectorBytes(item.direction)
+	DirectionBytes, err := NewVectorBytes(item.Direction)
 	if err != nil {
 		return res, err
 	}
 
-	copy(res[0:8], directionBytes[:])
+	copy(res[0:8], DirectionBytes[:])
 
 	return res, nil
 }
