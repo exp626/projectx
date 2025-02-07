@@ -25,7 +25,7 @@ func New8ByteObject[T int | uint | int64 | uint64 | float64](raw [size8Byte]byte
 }
 
 func New8ByteObjectBytes[T int | uint | int64 | uint64 | float64](item T) (res [size8Byte]byte, err error) {
-	buf := bytes.NewBuffer([]byte{})
+	buf := new(bytes.Buffer)
 
 	err = binary.Write(buf, binary.LittleEndian, item)
 
@@ -39,7 +39,7 @@ func New4ByteObject[T int32 | uint32](raw [4]byte) (res T, err error) {
 }
 
 func New4ByteObjectBytes[T int32 | uint32](item T) (res [4]byte, err error) {
-	buf := bytes.NewBuffer([]byte{})
+	buf := new(bytes.Buffer)
 
 	err = binary.Write(buf, binary.LittleEndian, item)
 
