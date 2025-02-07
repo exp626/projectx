@@ -10,34 +10,34 @@ import (
 
 type Service interface {
 	// 21
-	player_move(ctx context.Context, body player_move) (err error)
+	PlayerMove(ctx context.Context, body PlayerMoveBody) (err error)
 	// 19
-	create_player(ctx context.Context, body create_player) (err error)
+	CreatePlayer(ctx context.Context, body CreatePlayerBody) (err error)
 	// 20
-	input(ctx context.Context, body input) (err error)
+	Input(ctx context.Context, body InputBody) (err error)
 }
 
-const Sizeplayer_move int = 20
+const SizePlayerMoveBody int = 20
 
-type player_move struct {
+type PlayerMoveBody struct {
 	entity_id int32
-	position  vector
-	direction vector
+	position  Vector
+	direction Vector
 }
 
-func Newplayer_move(raw [Sizeplayer_move]byte) (res player_move, err error) {
+func NewPlayerMoveBody(raw [SizePlayerMoveBody]byte) (res PlayerMoveBody, err error) {
 
 	res.entity_id, err = protocol.Newint32([protocol.Sizeint32]byte(raw[0:4]))
 	if err != nil {
 		return res, err
 	}
 
-	res.position, err = Newvector([Sizevector]byte(raw[4:12]))
+	res.position, err = NewVector([SizeVector]byte(raw[4:12]))
 	if err != nil {
 		return res, err
 	}
 
-	res.direction, err = Newvector([Sizevector]byte(raw[12:20]))
+	res.direction, err = NewVector([SizeVector]byte(raw[12:20]))
 	if err != nil {
 		return res, err
 	}
@@ -45,7 +45,7 @@ func Newplayer_move(raw [Sizeplayer_move]byte) (res player_move, err error) {
 	return res, nil
 }
 
-func Newplayer_moveBytes(item player_move) (res [Sizeplayer_move]byte, err error) {
+func NewPlayerMoveBodyBytes(item PlayerMoveBody) (res [SizePlayerMoveBody]byte, err error) {
 
 	entity_idBytes, err := protocol.Newint32Bytes(item.entity_id)
 	if err != nil {
@@ -54,14 +54,14 @@ func Newplayer_moveBytes(item player_move) (res [Sizeplayer_move]byte, err error
 
 	copy(res[0:4], entity_idBytes[:])
 
-	positionBytes, err := NewvectorBytes(item.position)
+	positionBytes, err := NewVectorBytes(item.position)
 	if err != nil {
 		return res, err
 	}
 
 	copy(res[4:12], positionBytes[:])
 
-	directionBytes, err := NewvectorBytes(item.direction)
+	directionBytes, err := NewVectorBytes(item.direction)
 	if err != nil {
 		return res, err
 	}
@@ -71,17 +71,17 @@ func Newplayer_moveBytes(item player_move) (res [Sizeplayer_move]byte, err error
 	return res, nil
 }
 
-const Sizecreate_player int = 13
+const SizeCreatePlayerBody int = 13
 
-type create_player struct {
-	entity_type entity_code
+type CreatePlayerBody struct {
+	entity_type EntityCode
 	entity_id   int32
-	position    vector
+	position    Vector
 }
 
-func Newcreate_player(raw [Sizecreate_player]byte) (res create_player, err error) {
+func NewCreatePlayerBody(raw [SizeCreatePlayerBody]byte) (res CreatePlayerBody, err error) {
 
-	res.entity_type, err = Newentity_code([Sizeentity_code]byte(raw[0:1]))
+	res.entity_type, err = NewEntityCode([SizeEntityCode]byte(raw[0:1]))
 	if err != nil {
 		return res, err
 	}
@@ -91,7 +91,7 @@ func Newcreate_player(raw [Sizecreate_player]byte) (res create_player, err error
 		return res, err
 	}
 
-	res.position, err = Newvector([Sizevector]byte(raw[5:13]))
+	res.position, err = NewVector([SizeVector]byte(raw[5:13]))
 	if err != nil {
 		return res, err
 	}
@@ -99,9 +99,9 @@ func Newcreate_player(raw [Sizecreate_player]byte) (res create_player, err error
 	return res, nil
 }
 
-func Newcreate_playerBytes(item create_player) (res [Sizecreate_player]byte, err error) {
+func NewCreatePlayerBodyBytes(item CreatePlayerBody) (res [SizeCreatePlayerBody]byte, err error) {
 
-	entity_typeBytes, err := Newentity_codeBytes(item.entity_type)
+	entity_typeBytes, err := NewEntityCodeBytes(item.entity_type)
 	if err != nil {
 		return res, err
 	}
@@ -115,7 +115,7 @@ func Newcreate_playerBytes(item create_player) (res [Sizecreate_player]byte, err
 
 	copy(res[1:5], entity_idBytes[:])
 
-	positionBytes, err := NewvectorBytes(item.position)
+	positionBytes, err := NewVectorBytes(item.position)
 	if err != nil {
 		return res, err
 	}
@@ -125,15 +125,15 @@ func Newcreate_playerBytes(item create_player) (res [Sizecreate_player]byte, err
 	return res, nil
 }
 
-const Sizeinput int = 8
+const SizeInputBody int = 8
 
-type input struct {
-	direction vector
+type InputBody struct {
+	direction Vector
 }
 
-func Newinput(raw [Sizeinput]byte) (res input, err error) {
+func NewInputBody(raw [SizeInputBody]byte) (res InputBody, err error) {
 
-	res.direction, err = Newvector([Sizevector]byte(raw[0:8]))
+	res.direction, err = NewVector([SizeVector]byte(raw[0:8]))
 	if err != nil {
 		return res, err
 	}
@@ -141,9 +141,9 @@ func Newinput(raw [Sizeinput]byte) (res input, err error) {
 	return res, nil
 }
 
-func NewinputBytes(item input) (res [Sizeinput]byte, err error) {
+func NewInputBodyBytes(item InputBody) (res [SizeInputBody]byte, err error) {
 
-	directionBytes, err := NewvectorBytes(item.direction)
+	directionBytes, err := NewVectorBytes(item.direction)
 	if err != nil {
 		return res, err
 	}
@@ -157,13 +157,13 @@ const (
 
 	// команда на движение игрока
 	// 21
-	CommandCodeplayer_move byte = 21
+	CommandCodePlayerMove byte = 21
 
 	// команда на создание игрока
 	// 19
-	CommandCodecreate_player byte = 19
+	CommandCodeCreatePlayer byte = 19
 
 	// команда на ввод данных с джойстика
 	// 20
-	CommandCodeinput byte = 20
+	CommandCodeInput byte = 20
 )

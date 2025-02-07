@@ -24,7 +24,7 @@ import (
 
 type Service interface {
 	{{ range $command := .Commands }}// {{.CommandCode}}
-	{{ $command.Body.Name }}(ctx context.Context, body {{ $command.Body.Name }}) (err error)
+	{{ $command.Name }}(ctx context.Context, body {{ $command.Body.Name }}) (err error)
 	{{ end }}
 }
 
@@ -35,7 +35,7 @@ const (
 {{ range $command := .Commands }}
 // {{$command.Body.Description}}
 // {{.CommandCode}}
-	CommandCode{{ $command.Body.Name }} byte = {{ .CommandCode }}
+	CommandCode{{ $command.Name }} byte = {{ .CommandCode }}
 {{ end }}
 )
 `
@@ -120,6 +120,12 @@ type Server struct{
 	service Service
 }
 
+func NewServer(service Service) *Server {
+	return &Server{
+		service: service,
+	}
+}
+
 func (s *Server) HandleCommand(rawBody []byte) (err error){
 	if len(rawBody) < 2 {
 		return errors.New("body is too short")
@@ -131,7 +137,7 @@ func (s *Server) HandleCommand(rawBody []byte) (err error){
 
 	switch commandCode{
 	{{ range $command := .Commands }}
-	case CommandCode{{ $command.Body.Name }}:
+	case CommandCode{{ $command.Name }}:
 		if len(rawCommandBody) < Size{{$command.Body.Name}} {
 			return errors.New("body is too short")
 		}
@@ -141,7 +147,7 @@ func (s *Server) HandleCommand(rawBody []byte) (err error){
 			return err
 		}
 
-		err = s.service.{{ $command.Body.Name }}(context.Background(), body)
+		err = s.service.{{ $command.Name }}(context.Background(), body)
 		if err != nil {
 			return err
 		}
@@ -168,9 +174,14 @@ type Client struct {
 	wr io.Writer
 }
 
+func NewClient(wr io.Writer) *Client {
+	return &Client{
+		wr: wr,
+	}
+}
 
 {{ range $command := .Commands }}// {{.CommandCode}}
-func (c *Client){{ $command.Body.Name }}(ctx context.Context, body {{ $command.Body.Name }}) (err error) {
+func (c *Client){{ $command.Name }}(ctx context.Context, body {{ $command.Body.Name }}) (err error) {
 	rawCommandBody, err := New{{ $command.Body.Name }}Bytes(body)
 	if err != nil {
 		return err
@@ -178,7 +189,7 @@ func (c *Client){{ $command.Body.Name }}(ctx context.Context, body {{ $command.B
 
 	rawBody := make([]byte, 0, Size{{ $command.Body.Name }}+1)
 
-	rawBody = append(rawBody, CommandCode{{ $command.Body.Name }})
+	rawBody = append(rawBody, CommandCode{{ $command.Name }})
 	rawBody = append(rawBody, rawCommandBody[:]...)
 
 	n, err := c.wr.Write(rawBody)

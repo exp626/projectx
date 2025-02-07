@@ -12,6 +12,12 @@ type Server struct {
 	service Service
 }
 
+func NewServer(service Service) *Server {
+	return &Server{
+		service: service,
+	}
+}
+
 func (s *Server) HandleCommand(rawBody []byte) (err error) {
 	if len(rawBody) < 2 {
 		return errors.New("body is too short")
@@ -23,47 +29,47 @@ func (s *Server) HandleCommand(rawBody []byte) (err error) {
 
 	switch commandCode {
 
-	case CommandCodeplayer_move:
-		if len(rawCommandBody) < Sizeplayer_move {
+	case CommandCodePlayerMove:
+		if len(rawCommandBody) < SizePlayerMoveBody {
 			return errors.New("body is too short")
 		}
 
-		body, err := Newplayer_move([Sizeplayer_move]byte(rawCommandBody))
+		body, err := NewPlayerMoveBody([SizePlayerMoveBody]byte(rawCommandBody))
 		if err != nil {
 			return err
 		}
 
-		err = s.service.player_move(context.Background(), body)
+		err = s.service.PlayerMove(context.Background(), body)
 		if err != nil {
 			return err
 		}
 
-	case CommandCodecreate_player:
-		if len(rawCommandBody) < Sizecreate_player {
+	case CommandCodeCreatePlayer:
+		if len(rawCommandBody) < SizeCreatePlayerBody {
 			return errors.New("body is too short")
 		}
 
-		body, err := Newcreate_player([Sizecreate_player]byte(rawCommandBody))
+		body, err := NewCreatePlayerBody([SizeCreatePlayerBody]byte(rawCommandBody))
 		if err != nil {
 			return err
 		}
 
-		err = s.service.create_player(context.Background(), body)
+		err = s.service.CreatePlayer(context.Background(), body)
 		if err != nil {
 			return err
 		}
 
-	case CommandCodeinput:
-		if len(rawCommandBody) < Sizeinput {
+	case CommandCodeInput:
+		if len(rawCommandBody) < SizeInputBody {
 			return errors.New("body is too short")
 		}
 
-		body, err := Newinput([Sizeinput]byte(rawCommandBody))
+		body, err := NewInputBody([SizeInputBody]byte(rawCommandBody))
 		if err != nil {
 			return err
 		}
 
-		err = s.service.input(context.Background(), body)
+		err = s.service.Input(context.Background(), body)
 		if err != nil {
 			return err
 		}

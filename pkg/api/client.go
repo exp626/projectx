@@ -13,16 +13,22 @@ type Client struct {
 	wr io.Writer
 }
 
+func NewClient(wr io.Writer) *Client {
+	return &Client{
+		wr: wr,
+	}
+}
+
 // 21
-func (c *Client) player_move(ctx context.Context, body player_move) (err error) {
-	rawCommandBody, err := Newplayer_moveBytes(body)
+func (c *Client) PlayerMove(ctx context.Context, body PlayerMoveBody) (err error) {
+	rawCommandBody, err := NewPlayerMoveBodyBytes(body)
 	if err != nil {
 		return err
 	}
 
-	rawBody := make([]byte, 0, Sizeplayer_move+1)
+	rawBody := make([]byte, 0, SizePlayerMoveBody+1)
 
-	rawBody = append(rawBody, CommandCodeplayer_move)
+	rawBody = append(rawBody, CommandCodePlayerMove)
 	rawBody = append(rawBody, rawCommandBody[:]...)
 
 	n, err := c.wr.Write(rawBody)
@@ -38,15 +44,15 @@ func (c *Client) player_move(ctx context.Context, body player_move) (err error) 
 }
 
 // 19
-func (c *Client) create_player(ctx context.Context, body create_player) (err error) {
-	rawCommandBody, err := Newcreate_playerBytes(body)
+func (c *Client) CreatePlayer(ctx context.Context, body CreatePlayerBody) (err error) {
+	rawCommandBody, err := NewCreatePlayerBodyBytes(body)
 	if err != nil {
 		return err
 	}
 
-	rawBody := make([]byte, 0, Sizecreate_player+1)
+	rawBody := make([]byte, 0, SizeCreatePlayerBody+1)
 
-	rawBody = append(rawBody, CommandCodecreate_player)
+	rawBody = append(rawBody, CommandCodeCreatePlayer)
 	rawBody = append(rawBody, rawCommandBody[:]...)
 
 	n, err := c.wr.Write(rawBody)
@@ -62,15 +68,15 @@ func (c *Client) create_player(ctx context.Context, body create_player) (err err
 }
 
 // 20
-func (c *Client) input(ctx context.Context, body input) (err error) {
-	rawCommandBody, err := NewinputBytes(body)
+func (c *Client) Input(ctx context.Context, body InputBody) (err error) {
+	rawCommandBody, err := NewInputBodyBytes(body)
 	if err != nil {
 		return err
 	}
 
-	rawBody := make([]byte, 0, Sizeinput+1)
+	rawBody := make([]byte, 0, SizeInputBody+1)
 
-	rawBody = append(rawBody, CommandCodeinput)
+	rawBody = append(rawBody, CommandCodeInput)
 	rawBody = append(rawBody, rawCommandBody[:]...)
 
 	n, err := c.wr.Write(rawBody)

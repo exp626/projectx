@@ -2,6 +2,7 @@ package generator
 
 import (
 	"errors"
+	"github.com/iancoleman/strcase"
 	"io"
 	"text/template"
 )
@@ -15,6 +16,7 @@ const (
 
 type Command struct {
 	CommandCode byte         `json:"command_code"`
+	Name        string       `json:"name"`
 	Direction   string       `json:"direction"`
 	Body        ProtocolType `json:"body"`
 }
@@ -23,6 +25,33 @@ type ProtocolManifest struct {
 	PackageName string         `json:"packageName"`
 	Commands    []Command      `json:"commands"`
 	Types       []ProtocolType `json:"types"`
+}
+
+func (m *ProtocolManifest) ConvertNames(language OutputLanguage) (err error) {
+	switch language {
+	case GoLanguage:
+		for i := 0; i < len(m.Types); i++ {
+			m.Types[i].Name.ToCamel()
+
+			err = m.Types[i].FormatTypeName(language)
+			if err != nil {
+				return err
+			}
+		}
+
+		for i := 0; i < len(m.Commands); i++ {
+			m.Commands[i].Name = strcase.ToCamel(m.Commands[i].Name)
+
+			m.Commands[i].Body.Name.ToCamel()
+
+			err = m.Commands[i].Body.FormatTypeName(language)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (m *ProtocolManifest) FillKnownTypes() (err error) {

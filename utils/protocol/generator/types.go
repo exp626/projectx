@@ -1,5 +1,10 @@
 package generator
 
+import (
+	"github.com/iancoleman/strcase"
+	"slices"
+)
+
 type TypeName string
 
 const (
@@ -89,3 +94,9 @@ var (
 		},
 	}
 )
+
+func (t *TypeName) ToCamel() {
+	if !slices.Contains(baseTypes, *t) {
+		*t = TypeName(strcase.ToCamel(string(*t)))
+	}
+}

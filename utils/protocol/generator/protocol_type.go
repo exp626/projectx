@@ -3,6 +3,7 @@ package generator
 import (
 	"encoding/json"
 	"errors"
+	"github.com/iancoleman/strcase"
 	"slices"
 	"text/template"
 )
@@ -221,6 +222,37 @@ func (o *StructOptions) EnrichConstructFormat() (err error) {
 
 	o.FieldsConstruct = strWriterConstruct.s
 	o.BytesConstruct = strWriterBytes.s
+
+	return nil
+}
+
+func (p *ProtocolType) FormatTypeName(language OutputLanguage) (err error) {
+	switch p.Type {
+	case enumType:
+		opts, ok := p.Options.(*EnumOptions)
+		if !ok {
+			return errors.New("enum options is not set")
+		}
+
+		switch language {
+		case GoLanguage:
+			for i := 0; i < len(opts.Values); i++ {
+				opts.Values[i].Name = strcase.ToCamel(opts.Values[i].Name)
+			}
+		}
+	case structType:
+		opts, ok := p.Options.(*StructOptions)
+		if !ok {
+			return errors.New("struct options is not set")
+		}
+
+		switch language {
+		case GoLanguage:
+			for i := 0; i < len(opts.Fields); i++ {
+				opts.Fields[i].Type.ToCamel()
+			}
+		}
+	}
 
 	return nil
 }
