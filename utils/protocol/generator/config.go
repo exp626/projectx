@@ -20,10 +20,10 @@ func (c *Config) UnmarshalFlags() (err error) {
 
 	lang := ""
 
-	flag.Parse()
-
 	flag.StringVar(&c.OutputDir, "out", "./", "path to output directory")
 	flag.StringVar(&lang, "lang", "go", "output language (only go is available)")
+
+	flag.Parse()
 
 	c.OutputLanguage = OutputLanguage(lang)
 
