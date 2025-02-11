@@ -16,6 +16,8 @@ const (
 	Sizefloat64 = size8Byte
 	Sizeint32   = size4Byte
 	Sizebyte    = size1Byte
+	Sizeint8    = size1Byte
+	Sizeuint8   = size1Byte
 )
 
 func New8ByteObject[T int | uint | int64 | uint64 | float64](raw [size8Byte]byte) (res T, err error) {
@@ -29,21 +31,35 @@ func New8ByteObjectBytes[T int | uint | int64 | uint64 | float64](item T) (res [
 
 	err = binary.Write(buf, binary.LittleEndian, item)
 
-	return [8]byte(buf.Bytes()), err
+	return [size8Byte]byte(buf.Bytes()), err
 }
 
-func New4ByteObject[T int32 | uint32](raw [4]byte) (res T, err error) {
+func New4ByteObject[T int32 | uint32](raw [size4Byte]byte) (res T, err error) {
 	err = binary.Read(bytes.NewBuffer(raw[:]), binary.LittleEndian, &res)
 
 	return res, err
 }
 
-func New4ByteObjectBytes[T int32 | uint32](item T) (res [4]byte, err error) {
+func New4ByteObjectBytes[T int32 | uint32](item T) (res [size4Byte]byte, err error) {
 	buf := new(bytes.Buffer)
 
 	err = binary.Write(buf, binary.LittleEndian, item)
 
-	return [4]byte(buf.Bytes()), err
+	return [size4Byte]byte(buf.Bytes()), err
+}
+
+func New1ByteObject[T int8 | uint8](raw [size1Byte]byte) (res T, err error) {
+	err = binary.Read(bytes.NewBuffer(raw[:]), binary.LittleEndian, &res)
+
+	return res, err
+}
+
+func New1ByteObjectBytes[T int8 | uint8](item T) (res [size1Byte]byte, err error) {
+	buf := new(bytes.Buffer)
+
+	err = binary.Write(buf, binary.LittleEndian, item)
+
+	return [size1Byte]byte(buf.Bytes()), err
 }
 
 func Newint(raw [8]byte) (res int, err error) {
@@ -84,4 +100,20 @@ func Newint32(raw [4]byte) (res int32, err error) {
 
 func Newint32Bytes(item int32) (res [4]byte, err error) {
 	return New4ByteObjectBytes(item)
+}
+
+func Newint8(raw [1]byte) (res int8, err error) {
+	return New1ByteObject[int8](raw)
+}
+
+func Newint8Bytes(item int8) (res [1]byte, err error) {
+	return New1ByteObjectBytes(item)
+}
+
+func Newuint8(raw [1]byte) (res uint8, err error) {
+	return New1ByteObject[uint8](raw)
+}
+
+func Newuint8Bytes(item uint8) (res [1]byte, err error) {
+	return New1ByteObjectBytes(item)
 }
