@@ -3,6 +3,7 @@ package generator
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/iancoleman/strcase"
 	"slices"
 	"text/template"
@@ -32,14 +33,16 @@ func (p *ProtocolType) UnmarshalJSON(bytes []byte) (err error) {
 
 	switch p.Type {
 	case structType:
-		p.Options = &StructOptions{
+		opt := &StructOptions{
 			CalculatedSize: make(map[string]uint64),
 		}
 
-		err = json.Unmarshal(p.RawOptions, p.Options)
+		err = json.Unmarshal(p.RawOptions, opt)
 		if err != nil {
 			return err
 		}
+
+		p.Options = opt
 	case enumType:
 		p.Options = &EnumOptions{}
 
@@ -51,27 +54,6 @@ func (p *ProtocolType) UnmarshalJSON(bytes []byte) (err error) {
 
 	return nil
 }
-
-type (
-	EnumOptions struct {
-		Type   TypeName           `json:"type"`
-		Values []EnumOptionsValue `json:"values"`
-	}
-	EnumOptionsValue struct {
-		Name  string `json:"name"`
-		Value int    `json:"value"`
-	}
-
-	StructOptions struct {
-		Fields []Field `json:"fields"`
-
-		FieldsConstruct string
-		BytesConstruct  string
-
-		// map field name: size
-		CalculatedSize map[string]uint64
-	}
-)
 
 func (p *ProtocolType) FormatType() (typeStr string, err error) {
 	wr := &StringWriter{}
@@ -192,37 +174,6 @@ func (o *StructOptions) EnrichConstructFormat() (err error) {
 		o.Fields[i].IsBaseType = slices.Contains(baseTypes, o.Fields[i].Type)
 	}
 
-	constructTmpl := template.New("fields")
-
-	constructTmpl, err = constructTmpl.Parse(structFieldsConstructFmt)
-	if err != nil {
-		return err
-	}
-
-	strWriterConstruct := &StringWriter{}
-
-	err = constructTmpl.Execute(strWriterConstruct, o.Fields)
-	if err != nil {
-		return err
-	}
-
-	bytesTmpl := template.New("fields")
-
-	bytesTmpl, err = constructTmpl.Parse(structBytesConstructFmt)
-	if err != nil {
-		return err
-	}
-
-	strWriterBytes := &StringWriter{}
-
-	err = bytesTmpl.Execute(strWriterBytes, o.Fields)
-	if err != nil {
-		return err
-	}
-
-	o.FieldsConstruct = strWriterConstruct.s
-	o.BytesConstruct = strWriterBytes.s
-
 	return nil
 }
 
@@ -255,5 +206,215 @@ func (p *ProtocolType) FormatTypeName(language OutputLanguage) (err error) {
 		}
 	}
 
+	return nil
+}
+
+func (p *ProtocolType) Format() (formatted string, err error) {
+	switch p.Type {
+	case structType:
+		opt, ok := p.Options.(*StructOptions)
+		if !ok {
+			return formatted, errors.New("struct options is not set")
+		}
+
+		err = opt.EnrichConstructFormat()
+		if err != nil {
+			return formatted, err
+		}
+
+		structFields, err := opt.Format()
+		if err != nil {
+			return structFields, err
+		}
+
+		structConstructors, err := p.FormatConstructors()
+		if err != nil {
+			return formatted, err
+		}
+
+		sizeDeclaration, err := p.FormatSize()
+		if err != nil {
+			return formatted, err
+		}
+
+		formatted = fmt.Sprintf(structFmt, sizeDeclaration, p.Name, structFields, structConstructors)
+	case enumType:
+		opt, ok := p.Options.(*EnumOptions)
+		if !ok {
+			return formatted, errors.New("enum options is not set")
+		}
+
+		enumValues, err := opt.Format(p.Name)
+		if err != nil {
+			return formatted, err
+		}
+
+		constructorsDeclaration, err := p.FormatConstructors()
+		if err != nil {
+			return formatted, err
+		}
+
+		sizeDeclaration, err := p.FormatSize()
+		if err != nil {
+			return formatted, err
+		}
+
+		formatted = fmt.Sprintf(enumFmt, sizeDeclaration, p.Name, opt.Type, enumValues, constructorsDeclaration)
+	case uint8Type,
+		uint16Type,
+		uint32Type,
+		uint64Type,
+		int8Type,
+		int16Type,
+		int32Type,
+		int64Type,
+		float32Type,
+		float64Type,
+		stringType,
+		intType,
+		uintType,
+		byteType,
+		runeType:
+		formatted = fmt.Sprintf(baseFmt, p.Name, p.Type)
+	default:
+		return formatted, errors.New("unknown type")
+	}
+
+	formatted += "\n"
+
+	return formatted, nil
+}
+
+func (p *ProtocolType) FormatConstructors() (formatted string, err error) {
+	switch p.Type {
+	case structType:
+		opt, ok := p.Options.(*StructOptions)
+		if !ok {
+			return formatted, errors.New("struct options is not set")
+		}
+
+		fieldsConstructFormatted, err := opt.FormatFieldsConstruct()
+		if err != nil {
+			return formatted, err
+		}
+
+		fieldsBytesFormatted, err := opt.FormatFieldsBytesConstruct()
+		if err != nil {
+			return formatted, err
+		}
+
+		err = opt.EnrichConstructFormat()
+		if err != nil {
+			return formatted, err
+		}
+
+		formatted = fmt.Sprintf(
+			structConstructorsFmt,
+			p.Name,
+			p.Name,
+			p.Name,
+			fieldsConstructFormatted,
+			p.Name,
+			p.Name,
+			p.Name,
+			fieldsBytesFormatted,
+		)
+	case enumType:
+		opt, ok := p.Options.(*EnumOptions)
+		if !ok {
+			return formatted, errors.New("enum options is not set")
+		}
+
+		formatted = fmt.Sprintf(
+			enumAndBaseConstructorsFmt,
+			p.Name,
+			p.Name,
+			p.Name,
+			opt.Type,
+			p.Name,
+
+			p.Name,
+			p.Name,
+			p.Name,
+			opt.Type,
+			opt.Type,
+		)
+	case uint8Type,
+		uint16Type,
+		uint32Type,
+		uint64Type,
+		int8Type,
+		int16Type,
+		int32Type,
+		int64Type,
+		float32Type,
+		float64Type,
+		stringType,
+		intType,
+		uintType,
+		byteType,
+		runeType:
+
+		formatted = fmt.Sprintf(
+			enumAndBaseConstructorsFmt,
+			p.Name,
+			p.Name,
+			p.Name,
+			p.Type,
+			p.Name,
+
+			p.Name,
+			p.Name,
+			p.Name,
+			p.Type,
+			p.Type,
+		)
+	default:
+		return formatted, errors.New("unknown type")
+	}
+
+	return formatted, nil
+}
+
+func (p *ProtocolType) FormatSize() (formatted string, err error) {
+	formatted = fmt.Sprintf(typeSizeFmt+"\n", p.Name, p.Size)
+
+	return formatted, nil
+}
+
+func (p *ProtocolType) RenameAsLanguage(lang OutputLanguage) (err error) {
+	switch lang {
+	case GoLanguage:
+		p.Name.ToCamel()
+		p.Type.ToCamel()
+	}
+
+	switch p.Type {
+	case structType:
+		opts, ok := p.Options.(*StructOptions)
+		if !ok {
+			return errors.New("invalid struct options")
+		}
+
+		for i := 0; i < len(opts.Fields); i++ {
+			switch lang {
+			case GoLanguage:
+				opts.Fields[i].Type.ToCamel()
+				opts.Fields[i].Name = strcase.ToCamel(opts.Fields[i].Name)
+			}
+		}
+	case enumType:
+		opts, ok := p.Options.(*EnumOptions)
+		if !ok {
+			return errors.New("invalid struct options")
+		}
+
+		for i := 0; i < len(opts.Values); i++ {
+			switch lang {
+			case GoLanguage:
+				opts.Values[i].Name = strcase.ToCamel(opts.Values[i].Name)
+			}
+		}
+	}
 	return nil
 }

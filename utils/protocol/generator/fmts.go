@@ -88,121 +88,88 @@ func New{{.Name}}Bytes(item {{.Name}}) (res [Size{{.Name}}]byte, err error) {
 		return res, nil
 	}
 `
-	structFieldsConstructFmt = `
-    {{ range $field := . }} 
-	res.{{$field.Name}}, err = {{if $field.IsBaseType}}protocol.{{end}}New{{$field.Type}}( [{{if $field.IsBaseType}}protocol.{{end}}Size{{$field.Type}}]byte (raw[{{$field.Offset}}:{{$field.EndOffset}}]))
-	if err != nil {
-		return res, err
-	}
-	{{end}}
-`
-	structBytesConstructFmt = `
-	{{ range $field := . }}
-	{{$field.Name}}Bytes, err := {{if $field.IsBaseType}}protocol.{{end}}New{{$field.Type}}Bytes(item.{{$field.Name}})
-	if err != nil {
-		return res, err
-	}
-
-	copy(res[{{$field.Offset}}:{{$field.EndOffset}}], {{$field.Name}}Bytes[:])
-	{{end}}
-`
-	serverFmt = `// GENERATED CODE
-// DO NOT EDIT
-
-package {{.PackageName}}
-
-import (
-	"context"
-	"errors"
 )
 
-type Server struct{	
-	service Service
-}
-
-func NewServer(service Service) *Server {
-	return &Server{
-		service: service,
-	}
-}
-
-func (s *Server) HandleCommand(rawBody []byte) (err error){
-	if len(rawBody) < 2 {
-		return errors.New("body is too short")
-	}
-
-	commandCode := rawBody[0]
-
-	rawCommandBody := rawBody[1:]
-
-	switch commandCode{
-	{{ range $command := .Commands }}
-	case CommandCode{{ $command.Name }}:
-		if len(rawCommandBody) < Size{{$command.Body.Name}} {
-			return errors.New("body is too short")
-		}
-
-		body, err := New{{$command.Body.Name}}([Size{{$command.Body.Name}}]byte(rawCommandBody))
-		if err != nil {
-			return err
-		}
-
-		err = s.service.{{ $command.Name }}(context.Background(), body)
-		if err != nil {
-			return err
-		}
-	{{ end }}
-	default:
-		return errors.New("unknown command code")
-	}
-
-	return nil
-}
-`
-	clientFmt = `// GENERATED CODE
+// new gen fmt
+const (
+	fileFmt = `// GENERATED CODE
 // DO NOT EDIT
 
-package {{.PackageName}}
+package %s
 
-import (
-	"io"
-	"context"
-	"errors"
-)
+%s
+`
+	structFmt = `
+	%s
 
-type Client struct {
-	wr io.Writer
-}
+	type %s struct {%s}
+	
+	%s
+`
+	structFieldFmt = "%s %s"
+	enumFmt        = `
+	%s
 
-func NewClient(wr io.Writer) *Client {
-	return &Client{
-		wr: wr,
-	}
-}
+	type %s %s
+	const (%s)
 
-{{ range $command := .Commands }}// {{.CommandCode}}
-func (c *Client){{ $command.Name }}(ctx context.Context, body {{ $command.Body.Name }}) (err error) {
-	rawCommandBody, err := New{{ $command.Body.Name }}Bytes(body)
+	%s
+`
+	enumValue = `%s%s %s = %d`
+	baseFmt   = "%s %s"
+
+	typeSizeFmt          = "const Size%s = %d"
+	structFieldConstruct = `
+	body.%s, err = %sNew%s( [%sSize%s]byte (raw[%d:%d]))
 	if err != nil {
-		return err
+		return body, err
 	}
-
-	rawBody := make([]byte, 0, Size{{ $command.Body.Name }}+1)
-
-	rawBody = append(rawBody, CommandCode{{ $command.Name }})
-	rawBody = append(rawBody, rawCommandBody[:]...)
-
-	n, err := c.wr.Write(rawBody)
+`
+	structFieldBytesConstruct = `
+	%sBytes, err := %sNew%sBytes(body.%s)
 	if err != nil {
-		return err
+		return raw, err
 	}
 
-	if n != len(rawBody){
-		return errors.New("all information was not writen")
-	}
-
-	return nil
+	copy(raw[%d:%d], %sBytes[:])
+`
+	structConstructorsFmt = `
+	func New%s(raw [Size%s]byte) (body %s, err error) {
+	%s
+	return body, nil
 }
-{{ end }}
+
+	func New%sBytes(body %s) (raw [Size%s]byte, err error) {
+	%s
+	return raw, nil
+}
+`
+	enumAndBaseConstructorsFmt = `
+	func New%s(raw [Size%s]byte) (res %s, err error){
+		baseRes, err := protocol.New%s(raw)
+		if err != nil {
+			return res, err
+		}
+
+		res = %s(baseRes)
+		
+		return res, nil
+	}
+	
+	func New%sBytes(item %s) (res [Size%s]byte, err error) {
+		res, err = protocol.New%sBytes(%s(item))
+		if err != nil {
+			return res, err
+		}
+
+		return res, nil
+	}
+`
+
+	baseTypesFileFmt = `
+
+import protocol "github.com/exp626/projectx/pkg/protocol"
+
+%s
 `
 )

@@ -93,10 +93,42 @@ var (
 			IsSizeDynamic: true,
 		},
 	}
+
+	standardBaseTypes = []TypeName{
+		uint8Type,
+		uint16Type,
+		uint32Type,
+		uint64Type,
+		int8Type,
+		int16Type,
+		int32Type,
+		int64Type,
+		float32Type,
+		float64Type,
+		stringType,
+		intType,
+		uintType,
+		byteType,
+		runeType,
+		enumType,
+		structType,
+	}
 )
 
 func (t *TypeName) ToCamel() {
-	if !slices.Contains(baseTypes, *t) {
+	if !slices.Contains(standardBaseTypes, *t) {
 		*t = TypeName(strcase.ToCamel(string(*t)))
 	}
+}
+
+func ReturnPackage(typeName TypeName) string {
+	if slices.Contains(baseTypes, typeName) {
+		return "protocol."
+	}
+
+	return ""
+}
+
+func (t TypeName) String() string {
+	return string(t)
 }

@@ -8,16 +8,19 @@ import (
 	protocol "github.com/exp626/projectx/pkg/protocol"
 )
 
+const (
+	CommandCodePlayerMove   byte = 21
+	CommandCodeCreatePlayer byte = 19
+	CommandCodeInput        byte = 20
+)
+
 type Service interface {
-	// 21
 	PlayerMove(ctx context.Context, body PlayerMoveBody) (err error)
-	// 19
 	CreatePlayer(ctx context.Context, body CreatePlayerBody) (err error)
-	// 20
 	Input(ctx context.Context, body InputBody) (err error)
 }
 
-const SizePlayerMoveBody int = 20
+const SizePlayerMoveBody = 20
 
 type PlayerMoveBody struct {
 	EntityId  int32
@@ -25,53 +28,53 @@ type PlayerMoveBody struct {
 	Direction Vector
 }
 
-func NewPlayerMoveBody(raw [SizePlayerMoveBody]byte) (res PlayerMoveBody, err error) {
+func NewPlayerMoveBody(raw [SizePlayerMoveBody]byte) (body PlayerMoveBody, err error) {
 
-	res.EntityId, err = protocol.Newint32([protocol.Sizeint32]byte(raw[0:4]))
+	body.EntityId, err = protocol.Newint32([protocol.Sizeint32]byte(raw[0:4]))
 	if err != nil {
-		return res, err
+		return body, err
 	}
 
-	res.Position, err = NewVector([SizeVector]byte(raw[4:12]))
+	body.Position, err = NewVector([SizeVector]byte(raw[4:12]))
 	if err != nil {
-		return res, err
+		return body, err
 	}
 
-	res.Direction, err = NewVector([SizeVector]byte(raw[12:20]))
+	body.Direction, err = NewVector([SizeVector]byte(raw[12:20]))
 	if err != nil {
-		return res, err
+		return body, err
 	}
 
-	return res, nil
+	return body, nil
 }
 
-func NewPlayerMoveBodyBytes(item PlayerMoveBody) (res [SizePlayerMoveBody]byte, err error) {
+func NewPlayerMoveBodyBytes(body PlayerMoveBody) (raw [SizePlayerMoveBody]byte, err error) {
 
-	EntityIdBytes, err := protocol.Newint32Bytes(item.EntityId)
+	EntityIdBytes, err := protocol.Newint32Bytes(body.EntityId)
 	if err != nil {
-		return res, err
+		return raw, err
 	}
 
-	copy(res[0:4], EntityIdBytes[:])
+	copy(raw[0:4], EntityIdBytes[:])
 
-	PositionBytes, err := NewVectorBytes(item.Position)
+	PositionBytes, err := NewVectorBytes(body.Position)
 	if err != nil {
-		return res, err
+		return raw, err
 	}
 
-	copy(res[4:12], PositionBytes[:])
+	copy(raw[4:12], PositionBytes[:])
 
-	DirectionBytes, err := NewVectorBytes(item.Direction)
+	DirectionBytes, err := NewVectorBytes(body.Direction)
 	if err != nil {
-		return res, err
+		return raw, err
 	}
 
-	copy(res[12:20], DirectionBytes[:])
+	copy(raw[12:20], DirectionBytes[:])
 
-	return res, nil
+	return raw, nil
 }
 
-const SizeCreatePlayerBody int = 13
+const SizeCreatePlayerBody = 13
 
 type CreatePlayerBody struct {
 	EntityType EntityCode
@@ -79,91 +82,76 @@ type CreatePlayerBody struct {
 	Position   Vector
 }
 
-func NewCreatePlayerBody(raw [SizeCreatePlayerBody]byte) (res CreatePlayerBody, err error) {
+func NewCreatePlayerBody(raw [SizeCreatePlayerBody]byte) (body CreatePlayerBody, err error) {
 
-	res.EntityType, err = NewEntityCode([SizeEntityCode]byte(raw[0:1]))
+	body.EntityType, err = NewEntityCode([SizeEntityCode]byte(raw[0:1]))
 	if err != nil {
-		return res, err
+		return body, err
 	}
 
-	res.EntityId, err = protocol.Newint32([protocol.Sizeint32]byte(raw[1:5]))
+	body.EntityId, err = protocol.Newint32([protocol.Sizeint32]byte(raw[1:5]))
 	if err != nil {
-		return res, err
+		return body, err
 	}
 
-	res.Position, err = NewVector([SizeVector]byte(raw[5:13]))
+	body.Position, err = NewVector([SizeVector]byte(raw[5:13]))
 	if err != nil {
-		return res, err
+		return body, err
 	}
 
-	return res, nil
+	return body, nil
 }
 
-func NewCreatePlayerBodyBytes(item CreatePlayerBody) (res [SizeCreatePlayerBody]byte, err error) {
+func NewCreatePlayerBodyBytes(body CreatePlayerBody) (raw [SizeCreatePlayerBody]byte, err error) {
 
-	EntityTypeBytes, err := NewEntityCodeBytes(item.EntityType)
+	EntityTypeBytes, err := NewEntityCodeBytes(body.EntityType)
 	if err != nil {
-		return res, err
+		return raw, err
 	}
 
-	copy(res[0:1], EntityTypeBytes[:])
+	copy(raw[0:1], EntityTypeBytes[:])
 
-	EntityIdBytes, err := protocol.Newint32Bytes(item.EntityId)
+	EntityIdBytes, err := protocol.Newint32Bytes(body.EntityId)
 	if err != nil {
-		return res, err
+		return raw, err
 	}
 
-	copy(res[1:5], EntityIdBytes[:])
+	copy(raw[1:5], EntityIdBytes[:])
 
-	PositionBytes, err := NewVectorBytes(item.Position)
+	PositionBytes, err := NewVectorBytes(body.Position)
 	if err != nil {
-		return res, err
+		return raw, err
 	}
 
-	copy(res[5:13], PositionBytes[:])
+	copy(raw[5:13], PositionBytes[:])
 
-	return res, nil
+	return raw, nil
 }
 
-const SizeInputBody int = 8
+const SizeInputBody = 8
 
 type InputBody struct {
 	Direction Vector
 }
 
-func NewInputBody(raw [SizeInputBody]byte) (res InputBody, err error) {
+func NewInputBody(raw [SizeInputBody]byte) (body InputBody, err error) {
 
-	res.Direction, err = NewVector([SizeVector]byte(raw[0:8]))
+	body.Direction, err = NewVector([SizeVector]byte(raw[0:8]))
 	if err != nil {
-		return res, err
+		return body, err
 	}
 
-	return res, nil
+	return body, nil
 }
 
-func NewInputBodyBytes(item InputBody) (res [SizeInputBody]byte, err error) {
+func NewInputBodyBytes(body InputBody) (raw [SizeInputBody]byte, err error) {
 
-	DirectionBytes, err := NewVectorBytes(item.Direction)
+	DirectionBytes, err := NewVectorBytes(body.Direction)
 	if err != nil {
-		return res, err
+		return raw, err
 	}
 
-	copy(res[0:8], DirectionBytes[:])
+	copy(raw[0:8], DirectionBytes[:])
 
-	return res, nil
+	return raw, nil
 }
-
-const (
-
-	// команда на движение игрока
-	// 21
-	CommandCodePlayerMove byte = 21
-
-	// команда на создание игрока
-	// 19
-	CommandCodeCreatePlayer byte = 19
-
-	// команда на ввод данных с джойстика
-	// 20
-	CommandCodeInput byte = 20
-)

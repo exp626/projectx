@@ -2,9 +2,6 @@ package generator
 
 import (
 	"errors"
-	"github.com/iancoleman/strcase"
-	"io"
-	"text/template"
 )
 
 type CommandDirection string
@@ -14,44 +11,10 @@ const (
 	CommandDirectionClientToServer = "client_to_server"
 )
 
-type Command struct {
-	CommandCode byte         `json:"command_code"`
-	Name        string       `json:"name"`
-	Direction   string       `json:"direction"`
-	Body        ProtocolType `json:"body"`
-}
-
 type ProtocolManifest struct {
-	PackageName string         `json:"packageName"`
-	Commands    []Command      `json:"commands"`
-	Types       []ProtocolType `json:"types"`
-}
-
-func (m *ProtocolManifest) ConvertNames(language OutputLanguage) (err error) {
-	switch language {
-	case GoLanguage:
-		for i := 0; i < len(m.Types); i++ {
-			m.Types[i].Name.ToCamel()
-
-			err = m.Types[i].FormatTypeName(language)
-			if err != nil {
-				return err
-			}
-		}
-
-		for i := 0; i < len(m.Commands); i++ {
-			m.Commands[i].Name = strcase.ToCamel(m.Commands[i].Name)
-
-			m.Commands[i].Body.Name.ToCamel()
-
-			err = m.Commands[i].Body.FormatTypeName(language)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
+	PackageName string   `json:"packageName"`
+	Commands    Commands `json:"commands"`
+	Types       Types    `json:"types"`
 }
 
 func (m *ProtocolManifest) FillKnownTypes() (err error) {
@@ -81,114 +44,20 @@ func (m *ProtocolManifest) FillKnownTypes() (err error) {
 	return nil
 }
 
-func (m *ProtocolManifest) FormatBaseTypes(wr io.Writer) (err error) {
-	types := make([]string, 0, len(m.Types))
-
-	for _, item := range m.Types {
-		typeFmt, err := item.FormatType()
+func (m *ProtocolManifest) RenameAsLanguage(lang OutputLanguage) (err error) {
+	for i := 0; i < len(m.Types); i++ {
+		err = m.Types[i].RenameAsLanguage(lang)
 		if err != nil {
 			return err
 		}
-
-		types = append(types, typeFmt)
 	}
 
-	tmpl := template.New("baseTypes")
-
-	tmpl, err = tmpl.Parse(baseTypesFmt)
-	if err != nil {
-		return err
-	}
-
-	err = tmpl.Execute(wr, struct {
-		PackageName string
-		Types       []string
-	}{
-		PackageName: m.PackageName,
-		Types:       types,
-	})
-	if err != nil {
-		return err
-	}
-
-	return err
-}
-
-func (m *ProtocolManifest) FormatCommands(wr io.Writer) (err error) {
-	types := make([]string, 0, len(m.Commands))
-
-	for _, item := range m.Commands {
-		typeFmt, err := item.Body.FormatType()
+	for i := 0; i < len(m.Commands); i++ {
+		err = m.Commands[i].RenameAsLanguage(lang)
 		if err != nil {
 			return err
 		}
-
-		types = append(types, typeFmt)
 	}
 
-	tmpl := template.New("commandsTypes")
-
-	tmpl, err = tmpl.Parse(commandsFmt)
-	if err != nil {
-		return err
-	}
-
-	err = tmpl.Execute(wr, struct {
-		PackageName string
-		Types       []string
-		Commands    []Command
-	}{
-		PackageName: m.PackageName,
-		Types:       types,
-		Commands:    m.Commands,
-	})
-	if err != nil {
-		return err
-	}
-
-	return err
-}
-
-func (m *ProtocolManifest) FormatServer(wr io.Writer) (err error) {
-	tmpl := template.New("server")
-
-	tmpl, err = tmpl.Parse(serverFmt)
-	if err != nil {
-		return err
-	}
-
-	err = tmpl.Execute(wr, struct {
-		PackageName string
-		Commands    []Command
-	}{
-		PackageName: m.PackageName,
-		Commands:    m.Commands,
-	})
-	if err != nil {
-		return err
-	}
-
-	return err
-}
-
-func (m *ProtocolManifest) FormatClient(wr io.Writer) (err error) {
-	tmpl := template.New("client")
-
-	tmpl, err = tmpl.Parse(clientFmt)
-	if err != nil {
-		return err
-	}
-
-	err = tmpl.Execute(wr, struct {
-		PackageName string
-		Commands    []Command
-	}{
-		PackageName: m.PackageName,
-		Commands:    m.Commands,
-	})
-	if err != nil {
-		return err
-	}
-
-	return err
+	return nil
 }

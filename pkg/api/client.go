@@ -5,7 +5,7 @@ package game_protocol
 
 import (
 	"context"
-	"errors"
+	protocol "github.com/exp626/projectx/pkg/protocol"
 	"io"
 )
 
@@ -19,7 +19,6 @@ func NewClient(wr io.Writer) *Client {
 	}
 }
 
-// 21
 func (c *Client) PlayerMove(ctx context.Context, body PlayerMoveBody) (err error) {
 	rawCommandBody, err := NewPlayerMoveBodyBytes(body)
 	if err != nil {
@@ -37,13 +36,12 @@ func (c *Client) PlayerMove(ctx context.Context, body PlayerMoveBody) (err error
 	}
 
 	if n != len(rawBody) {
-		return errors.New("all information was not writen")
+		return protocol.ErrAllInformationWasNotWritten
 	}
 
 	return nil
 }
 
-// 19
 func (c *Client) CreatePlayer(ctx context.Context, body CreatePlayerBody) (err error) {
 	rawCommandBody, err := NewCreatePlayerBodyBytes(body)
 	if err != nil {
@@ -61,13 +59,12 @@ func (c *Client) CreatePlayer(ctx context.Context, body CreatePlayerBody) (err e
 	}
 
 	if n != len(rawBody) {
-		return errors.New("all information was not writen")
+		return protocol.ErrAllInformationWasNotWritten
 	}
 
 	return nil
 }
 
-// 20
 func (c *Client) Input(ctx context.Context, body InputBody) (err error) {
 	rawCommandBody, err := NewInputBodyBytes(body)
 	if err != nil {
@@ -85,7 +82,7 @@ func (c *Client) Input(ctx context.Context, body InputBody) (err error) {
 	}
 
 	if n != len(rawBody) {
-		return errors.New("all information was not writen")
+		return protocol.ErrAllInformationWasNotWritten
 	}
 
 	return nil

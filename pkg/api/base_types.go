@@ -5,89 +5,89 @@ package game_protocol
 
 import protocol "github.com/exp626/projectx/pkg/protocol"
 
-const SizeVector int = 8
+const SizeVector = 8
 
 type Vector struct {
 	X int32
 	Y int32
 }
 
-func NewVector(raw [SizeVector]byte) (res Vector, err error) {
+func NewVector(raw [SizeVector]byte) (body Vector, err error) {
 
-	res.X, err = protocol.Newint32([protocol.Sizeint32]byte(raw[0:4]))
+	body.X, err = protocol.Newint32([protocol.Sizeint32]byte(raw[0:4]))
 	if err != nil {
-		return res, err
+		return body, err
 	}
 
-	res.Y, err = protocol.Newint32([protocol.Sizeint32]byte(raw[4:8]))
+	body.Y, err = protocol.Newint32([protocol.Sizeint32]byte(raw[4:8]))
 	if err != nil {
-		return res, err
+		return body, err
 	}
 
-	return res, nil
+	return body, nil
 }
 
-func NewVectorBytes(item Vector) (res [SizeVector]byte, err error) {
+func NewVectorBytes(body Vector) (raw [SizeVector]byte, err error) {
 
-	XBytes, err := protocol.Newint32Bytes(item.X)
+	XBytes, err := protocol.Newint32Bytes(body.X)
 	if err != nil {
-		return res, err
+		return raw, err
 	}
 
-	copy(res[0:4], XBytes[:])
+	copy(raw[0:4], XBytes[:])
 
-	YBytes, err := protocol.Newint32Bytes(item.Y)
+	YBytes, err := protocol.Newint32Bytes(body.Y)
 	if err != nil {
-		return res, err
+		return raw, err
 	}
 
-	copy(res[4:8], YBytes[:])
+	copy(raw[4:8], YBytes[:])
 
-	return res, nil
+	return raw, nil
 }
 
-const SizePosition int = 8
+const SizePosition = 8
 
 type Position struct {
 	X int32
 	Y int32
 }
 
-func NewPosition(raw [SizePosition]byte) (res Position, err error) {
+func NewPosition(raw [SizePosition]byte) (body Position, err error) {
 
-	res.X, err = protocol.Newint32([protocol.Sizeint32]byte(raw[0:4]))
+	body.X, err = protocol.Newint32([protocol.Sizeint32]byte(raw[0:4]))
 	if err != nil {
-		return res, err
+		return body, err
 	}
 
-	res.Y, err = protocol.Newint32([protocol.Sizeint32]byte(raw[4:8]))
+	body.Y, err = protocol.Newint32([protocol.Sizeint32]byte(raw[4:8]))
 	if err != nil {
-		return res, err
+		return body, err
 	}
 
-	return res, nil
+	return body, nil
 }
 
-func NewPositionBytes(item Position) (res [SizePosition]byte, err error) {
+func NewPositionBytes(body Position) (raw [SizePosition]byte, err error) {
 
-	XBytes, err := protocol.Newint32Bytes(item.X)
+	XBytes, err := protocol.Newint32Bytes(body.X)
 	if err != nil {
-		return res, err
+		return raw, err
 	}
 
-	copy(res[0:4], XBytes[:])
+	copy(raw[0:4], XBytes[:])
 
-	YBytes, err := protocol.Newint32Bytes(item.Y)
+	YBytes, err := protocol.Newint32Bytes(body.Y)
 	if err != nil {
-		return res, err
+		return raw, err
 	}
 
-	copy(res[4:8], YBytes[:])
+	copy(raw[4:8], YBytes[:])
 
-	return res, nil
+	return raw, nil
 }
 
-const SizeEntityCode = protocol.Sizebyte
+const SizeEntityCode = 1
 
 type EntityCode byte
 

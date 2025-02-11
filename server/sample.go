@@ -10,14 +10,17 @@ import (
 type SampleServer struct{}
 
 func (s *SampleServer) PlayerMove(ctx context.Context, body game_protocol.PlayerMoveBody) (err error) {
+	log.Println(body)
 	return nil
 }
 
 func (s *SampleServer) CreatePlayer(ctx context.Context, body game_protocol.CreatePlayerBody) (err error) {
+	log.Println("create player")
 	return nil
 }
 
 func (s *SampleServer) Input(ctx context.Context, body game_protocol.InputBody) (err error) {
+	log.Println("input")
 	return nil
 }
 

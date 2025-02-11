@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"go/format"
@@ -9,10 +8,9 @@ import (
 )
 
 type Config struct {
-	Path            string
-	OutputDir       string
-	OutputLanguage  OutputLanguage
-	ProtocolPackage string
+	Path           string
+	OutputDir      string
+	OutputLanguage OutputLanguage
 }
 
 type ProtocolParser struct {
@@ -38,7 +36,10 @@ func (p *ProtocolParser) Parse() (err error) {
 		return err
 	}
 
-	p.Manifest.ConvertNames(p.cfg.OutputLanguage)
+	err = p.Manifest.RenameAsLanguage(p.cfg.OutputLanguage)
+	if err != nil {
+		return err
+	}
 
 	err = p.Manifest.FillKnownTypes()
 	if err != nil {
@@ -53,20 +54,17 @@ func (p *ProtocolParser) Parse() (err error) {
 
 		defer baseTypesFile.Close()
 
-		fileData := make([]byte, 0)
-		buf := bytes.NewBuffer(fileData)
-
-		err = p.Manifest.FormatBaseTypes(buf)
+		fileData, err := p.Manifest.Types.Format()
 		if err != nil {
 			return err
 		}
 
-		fileData, err = p.FormatCode(buf)
+		fileData, err = p.FormatFile(fileData)
 		if err != nil {
 			return err
 		}
 
-		_, err = baseTypesFile.WriteAt(fileData, 0)
+		_, err = baseTypesFile.WriteAt([]byte(fileData), 0)
 		if err != nil {
 			return err
 		}
@@ -80,20 +78,17 @@ func (p *ProtocolParser) Parse() (err error) {
 
 		defer commandsFile.Close()
 
-		fileData := make([]byte, 0)
-		buf := bytes.NewBuffer(fileData)
-
-		err = p.Manifest.FormatCommands(buf)
+		fileData, err := p.Manifest.Commands.Format()
 		if err != nil {
 			return err
 		}
 
-		fileData, err = p.FormatCode(buf)
+		fileData, err = p.FormatFile(fileData)
 		if err != nil {
 			return err
 		}
 
-		_, err = commandsFile.WriteAt(fileData, 0)
+		_, err = commandsFile.WriteAt([]byte(fileData), 0)
 		if err != nil {
 			return err
 		}
@@ -107,20 +102,17 @@ func (p *ProtocolParser) Parse() (err error) {
 
 		defer serverFile.Close()
 
-		fileData := make([]byte, 0)
-		buf := bytes.NewBuffer(fileData)
-
-		err = p.Manifest.FormatServer(buf)
+		fileData, err := p.Manifest.Commands.FormatServer()
 		if err != nil {
 			return err
 		}
 
-		fileData, err = p.FormatCode(buf)
+		fileData, err = p.FormatFile(fileData)
 		if err != nil {
 			return err
 		}
 
-		_, err = serverFile.WriteAt(fileData, 0)
+		_, err = serverFile.WriteAt([]byte(fileData), 0)
 		if err != nil {
 			return err
 		}
@@ -134,20 +126,17 @@ func (p *ProtocolParser) Parse() (err error) {
 
 		defer clientFile.Close()
 
-		fileData := make([]byte, 0)
-		buf := bytes.NewBuffer(fileData)
-
-		err = p.Manifest.FormatClient(buf)
+		fileData, err := p.Manifest.Commands.FormatClient()
 		if err != nil {
 			return err
 		}
 
-		fileData, err = p.FormatCode(buf)
+		fileData, err = p.FormatFile(fileData)
 		if err != nil {
 			return err
 		}
 
-		_, err = clientFile.WriteAt(fileData, 0)
+		_, err = clientFile.WriteAt([]byte(fileData), 0)
 		if err != nil {
 			return err
 		}
@@ -169,16 +158,29 @@ func (p *ProtocolParser) OpenGeneratedFile(name string) (file *os.File, err erro
 	return file, nil
 }
 
-func (p *ProtocolParser) FormatCode(buf *bytes.Buffer) (data []byte, err error) {
+func (p *ProtocolParser) FormatCode(src string) (data string, err error) {
 	switch p.cfg.OutputLanguage {
 	case GoLanguage:
-		data, err = format.Source(buf.Bytes())
+		rawData, err := format.Source([]byte(src))
 		if err != nil {
 			return data, err
 		}
+
+		data = string(rawData)
 	default:
-		data = buf.Bytes()
+		data = src
 	}
 
 	return data, nil
+}
+
+func (p *ProtocolParser) FormatFile(src string) (formatted string, err error) {
+	formatted = fmt.Sprintf(fileFmt, p.Manifest.PackageName, src)
+
+	formatted, err = p.FormatCode(formatted)
+	if err != nil {
+		return formatted, err
+	}
+
+	return formatted, nil
 }
