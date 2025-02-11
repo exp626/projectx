@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/iancoleman/strcase"
+	"strings"
 )
 
 type Command struct {
@@ -202,7 +203,7 @@ func (c Commands) FormatCommandCodeServerCases() (formatted string, err error) {
 const commandsFileFmt = `
 	import (
 		"context"
-		protocol "github.com/exp626/projectx/pkg/protocol"
+		%s
 	)
 		
 	%s
@@ -230,7 +231,19 @@ func (c Commands) Format() (formatted string, err error) {
 		return formatted, err
 	}
 
-	formatted = fmt.Sprintf(commandsFileFmt, commandCodesDeclaration, serviceInterfaceDeclaration, typesDeclaration)
+	formatted = fmt.Sprintf(
+		commandsFileFmt,
+		func() string {
+			if strings.Contains(typesDeclaration, "protocol.") {
+				return "protocol \"github.com/exp626/projectx/pkg/protocol\""
+			}
+
+			return ""
+		}(),
+		commandCodesDeclaration,
+		serviceInterfaceDeclaration,
+		typesDeclaration,
+	)
 
 	return formatted, nil
 }
