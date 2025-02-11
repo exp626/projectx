@@ -7,12 +7,6 @@ import (
 	"os"
 )
 
-type Config struct {
-	Path           string
-	OutputDir      string
-	OutputLanguage OutputLanguage
-}
-
 type ProtocolParser struct {
 	Manifest ProtocolManifest
 	cfg      Config

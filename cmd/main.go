@@ -6,14 +6,16 @@ import (
 )
 
 func main() {
-	g := generator.NewProtocolParser(generator.Config{
-		Path:           "./test_protocol.json",
-		OutputDir:      "./pkg/api/",
-		OutputLanguage: "go",
-	})
-
-	err := g.Parse()
+	cfg := generator.Config{}
+	err := cfg.UnmarshalFlags()
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Fatalf("Parsing args error: %v", err)
+	}
+
+	g := generator.NewProtocolParser(cfg)
+
+	err = g.Parse()
+	if err != nil {
+		log.Fatalf("Generating error: %v", err)
 	}
 }

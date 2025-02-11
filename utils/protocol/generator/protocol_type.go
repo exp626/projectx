@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/iancoleman/strcase"
 	"slices"
-	"text/template"
 )
 
 type (
@@ -53,61 +52,6 @@ func (p *ProtocolType) UnmarshalJSON(bytes []byte) (err error) {
 	}
 
 	return nil
-}
-
-func (p *ProtocolType) FormatType() (typeStr string, err error) {
-	wr := &StringWriter{}
-
-	tmpl := template.New(string(p.Name))
-
-	typeFmt := ""
-
-	switch p.Type {
-	case structType:
-		typeFmt = structTypeFmt
-
-		opt, ok := p.Options.(*StructOptions)
-		if !ok {
-			return typeStr, errors.New("struct options is not set")
-		}
-
-		err = opt.EnrichConstructFormat()
-		if err != nil {
-			return typeStr, err
-		}
-	case enumType:
-		typeFmt = enumTypeFmt
-	case uint8Type,
-		uint16Type,
-		uint32Type,
-		uint64Type,
-		int8Type,
-		int16Type,
-		int32Type,
-		int64Type,
-		float32Type,
-		float64Type,
-		stringType,
-		intType,
-		uintType,
-		byteType,
-		runeType:
-		typeFmt = baseTypeFmt
-	default:
-		return "", errors.New("unknown type")
-	}
-
-	tmpl, err = tmpl.Parse(typeFmt)
-	if err != nil {
-		return wr.s, err
-	}
-
-	err = tmpl.Execute(wr, *p)
-	if err != nil {
-		return wr.s, err
-	}
-
-	return wr.s, err
 }
 
 func (p *ProtocolType) CalculateSize() (err error) {
@@ -172,38 +116,6 @@ func (o *StructOptions) EnrichConstructFormat() (err error) {
 		offset = o.Fields[i].EndOffset
 
 		o.Fields[i].IsBaseType = slices.Contains(baseTypes, o.Fields[i].Type)
-	}
-
-	return nil
-}
-
-func (p *ProtocolType) FormatTypeName(language OutputLanguage) (err error) {
-	switch p.Type {
-	case enumType:
-		opts, ok := p.Options.(*EnumOptions)
-		if !ok {
-			return errors.New("enum options is not set")
-		}
-
-		switch language {
-		case GoLanguage:
-			for i := 0; i < len(opts.Values); i++ {
-				opts.Values[i].Name = strcase.ToCamel(opts.Values[i].Name)
-			}
-		}
-	case structType:
-		opts, ok := p.Options.(*StructOptions)
-		if !ok {
-			return errors.New("struct options is not set")
-		}
-
-		switch language {
-		case GoLanguage:
-			for i := 0; i < len(opts.Fields); i++ {
-				opts.Fields[i].Type.ToCamel()
-				opts.Fields[i].Name = strcase.ToCamel(opts.Fields[i].Name)
-			}
-		}
 	}
 
 	return nil
