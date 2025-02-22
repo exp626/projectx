@@ -34,13 +34,13 @@ func New8ByteObjectBytes[T int | uint | int64 | uint64 | float64](item T) (res [
 	return [size8Byte]byte(buf.Bytes()), err
 }
 
-func New4ByteObject[T int32 | uint32](raw [size4Byte]byte) (res T, err error) {
+func New4ByteObject[T int32 | uint32 | float32](raw [size4Byte]byte) (res T, err error) {
 	err = binary.Read(bytes.NewBuffer(raw[:]), binary.LittleEndian, &res)
 
 	return res, err
 }
 
-func New4ByteObjectBytes[T int32 | uint32](item T) (res [size4Byte]byte, err error) {
+func New4ByteObjectBytes[T int32 | uint32 | float32](item T) (res [size4Byte]byte, err error) {
 	buf := new(bytes.Buffer)
 
 	err = binary.Write(buf, binary.LittleEndian, item)
@@ -84,6 +84,14 @@ func Newfloat64(raw [8]byte) (res float64, err error) {
 
 func Newfloat64Bytes(item float64) (res [8]byte, err error) {
 	return New8ByteObjectBytes(item)
+}
+
+func Newfloat32(raw [4]byte) (res float32, err error) {
+	return New4ByteObject[float32](raw)
+}
+
+func Newfloat32Bytes(item float32) (res [4]byte, err error) {
+	return New4ByteObjectBytes(item)
 }
 
 func Newbyte(raw [1]byte) (res byte, err error) {
