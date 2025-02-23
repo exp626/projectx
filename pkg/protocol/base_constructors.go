@@ -18,6 +18,7 @@ const (
 	Sizebyte    = size1Byte
 	Sizeint8    = size1Byte
 	Sizeuint8   = size1Byte
+	Sizeuint32  = size4Byte
 )
 
 func New8ByteObject[T int | uint | int64 | uint64 | float64](raw [size8Byte]byte) (res T, err error) {
@@ -124,4 +125,12 @@ func Newuint8(raw [1]byte) (res uint8, err error) {
 
 func Newuint8Bytes(item uint8) (res [1]byte, err error) {
 	return New1ByteObjectBytes(item)
+}
+
+func Newuint32(raw [Sizeuint32]byte) (res uint32, err error) {
+	return New4ByteObject[uint32](raw)
+}
+
+func Newuint32Bytes(item uint32) (res [Sizeuint32]byte, err error) {
+	return New4ByteObjectBytes(item)
 }
