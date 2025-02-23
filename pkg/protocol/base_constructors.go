@@ -19,6 +19,7 @@ const (
 	Sizeint8    = size1Byte
 	Sizeuint8   = size1Byte
 	Sizeuint32  = size4Byte
+	Sizeint16   = size2Byte
 )
 
 func New8ByteObject[T int | uint | int64 | uint64 | float64](raw [size8Byte]byte) (res T, err error) {
@@ -47,6 +48,20 @@ func New4ByteObjectBytes[T int32 | uint32 | float32](item T) (res [size4Byte]byt
 	err = binary.Write(buf, binary.LittleEndian, item)
 
 	return [size4Byte]byte(buf.Bytes()), err
+}
+
+func New2ByteObject[T int16 | uint16](raw [size2Byte]byte) (res T, err error) {
+	err = binary.Read(bytes.NewBuffer(raw[:]), binary.LittleEndian, &res)
+
+	return res, err
+}
+
+func New2ByteObjectBytes[T int16 | uint16](item T) (res [size2Byte]byte, err error) {
+	buf := new(bytes.Buffer)
+
+	err = binary.Write(buf, binary.LittleEndian, item)
+
+	return [size2Byte]byte(buf.Bytes()), err
 }
 
 func New1ByteObject[T int8 | uint8](raw [size1Byte]byte) (res T, err error) {
@@ -133,4 +148,12 @@ func Newuint32(raw [Sizeuint32]byte) (res uint32, err error) {
 
 func Newuint32Bytes(item uint32) (res [Sizeuint32]byte, err error) {
 	return New4ByteObjectBytes(item)
+}
+
+func Newint16(raw [Sizeint16]byte) (res int16, err error) {
+	return New2ByteObject[int16](raw)
+}
+
+func Newint16Bytes(item int16) (res [Sizeint16]byte, err error) {
+	return New2ByteObjectBytes(item)
 }
